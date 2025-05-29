@@ -18,7 +18,7 @@
         "errors": {
             "notstring": "クエリが文字列として定義されていません",
             "notconnected": "データベースに接続できません",
-            "notconfigured": "MySQLデータベース未設定"
+            "notconfigured": "TDengineデータベース未設定"
         }
     }
 }

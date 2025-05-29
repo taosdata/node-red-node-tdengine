@@ -3,6 +3,7 @@ module.exports = function(RED) {
     "use strict";
     var reconnect = RED.settings.tdengineReconnectTime || 20000;
     var taos      = require('@tdengine/websocket');
+    var wsSql    = null;
 
     //
     // Node
@@ -32,49 +33,26 @@ module.exports = function(RED) {
             });
         }
 
-        function doConnect() {
+        async function doConnect() {
             node.connecting = true;
             node.emit("state","connecting");
-            if (!node.pool) {
-                node.pool = mysqldb.createPool({
-                    host : node.host,
-                    port : node.port,
-                    user : node.credentials.user,
-                    password : node.credentials.password,
-                    database : node.dbname,
-                    timezone : node.tz,
-                    insecureAuth: true,
-                    multipleStatements: true,
-                    connectionLimit: RED.settings.mysqlConnectionLimit || 50,
-                    connectTimeout: 30000,
-                    charset: node.charset,
-                    decimalNumbers: true
-                });
-            }
-
-            // connection test
-            node.pool.getConnection(function(err, connection) {
-                node.connecting = false;
-                if (err) {
-                    node.emit("state",err.code);
-                    node.error(err);
-                    node.tick = setTimeout(doConnect, reconnect);
-                }
-                else {
-                    node.connected = true;
-                    node.emit("state","connected");
-                    if (!node.check) { node.check = setInterval(checkVer, 290000); }
-                    connection.release();
-                }
-            });
+            if (!wsSql) {
+                let dsn = "ws://" + node.host + ":" + node.port;
+                let conf = new taos.WSConfig(dsn);
+                // conn
+                wsSql = await taos.sqlConnect(conf);
+                console.log("Connected to " + dsn + " successfully.");
+            };
         }
 
+        // interfalce
         node.connect = function() {
             if (!node.connected && !node.connecting) {
                 doConnect();
             }
         }
 
+        // close trigger
         node.on('close', function(done) {
             if (node.tick) { clearTimeout(node.tick); }
             if (node.check) { clearInterval(node.check); }
@@ -82,13 +60,14 @@ module.exports = function(RED) {
             node.emit("state"," ");
             if (node.connected) {
                 node.connected = false;
-                node.pool.end(function(err) { done(); });
+                if (wsSql) {
+                    wsSql.close();
+                }      
             }
             else {
-                delete node.pool;
                 done();
             }
-
+            taos.destroy();
         });
     }
     RED.nodes.registerType("TDengineDatabase", TDengineNode, {
@@ -126,22 +105,13 @@ module.exports = function(RED) {
 
             // input sql
             node.on("input", function(msg, send, done) {
-                send = send || function() { node.send.apply(node,arguments) };
+                send = send || function() { node.send.apply(node, arguments) };
+
                 if (node.mydbConfig.connected) {
                     if (typeof msg.topic === 'string') {
-                        //console.log("query:",msg.topic);
-                        node.mydbConfig.pool.getConnection(function (err, conn) {
-                            if (err) {
-                                if (conn) {
-                                    conn.release()
-                                }
-                                status = { fill: "red", shape: "ring", text: RED._("mysql.status.error") + ": " + err.code };
-                                node.status(status);
-                                node.error(err, msg);
-                                if (done) { done(); }
-                                return
-                            }
-
+                        console.log("query sql:", msg.topic);
+                        let conn = node.mydbConfig.wsSql;
+                        if (conn) {
                             var bind = [];
                             if (Array.isArray(msg.payload)) {
                                 bind = msg.payload;
@@ -149,34 +119,24 @@ module.exports = function(RED) {
                             else if (typeof msg.payload === 'object' && msg.payload !== null) {
                                 bind = msg.payload;
                             }
-                            conn.config.queryFormat = Array.isArray(msg.payload) ? null : customQueryFormat
-                            conn.query(msg.topic, bind, function (err, rows) {
-                                conn.release()
-                                if (err) {
-                                    status = { fill: "red", shape: "ring", text: RED._("mysql.status.error") + ": " + err.code };
-                                    node.status(status);
-                                    node.error(err, msg);
-                                }
-                                else {
-                                    msg.payload = rows;
-                                    send(msg);
-                                    status = { fill: "green", shape: "dot", text: RED._("mysql.status.ok") };
-                                    node.status(status);
-                                }
-                                if (done) { done(); }
-                            });
-                        });
+
+                            conn.exec(msg.topic);
+                        };
                     }
                     else {
                         if (typeof msg.topic !== 'string') {
-                            node.error("msg.topic : " + RED._("mysql.errors.notstring")); 
+                            node.error("msg.topic : " + RED._("tdengine.errors.notstring")); 
                             done();
                         }
                     }
                 }
                 else {
-                    node.error(RED._("mysql.errors.notconnected"),msg);
-                    status = {fill:"red",shape:"ring",text:RED._("mysql.status.notconnected")};
+                    node.error(RED._("tdengine.errors.notconnected"),msg);
+                    status = {
+                        fill:"red",
+                        shape:"ring",
+                        text:RED._("tdengine.status.notconnected")
+                    };
                     if (done) { done(); }
                 }
                 if (!busy) {
@@ -193,7 +153,7 @@ module.exports = function(RED) {
             });
         }
         else {
-            this.error(RED._("mysql.errors.notconfigured"));
+            this.error(RED._("tdengine.errors.notconfigured"));
         }
     }
     RED.nodes.registerType("tdengine", TDengineDBNodeIn);

@@ -27,12 +27,12 @@ If nothing is found for the key then *null* is returned.
 
 The reconnect retry timeout in milliseconds can be changed by adding a line to **settings.js**
 ```javascript
-mysqlReconnectTime: 30000,
+tdengineReconnectTime: 30000,
 ```
 
 The timezone can be set like GMT, EST5EDT, UTC, etc.
 
-The charset defaults to the "old" Mysql 3 byte UTF. If you need support for emojis etc then use UTF8MB4.
+The charset defaults to the "old" TDenigne 3 byte UTF. If you need support for emojis etc then use UTF8MB4.
 
 
 Preparing Queries

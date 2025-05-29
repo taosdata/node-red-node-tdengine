@@ -1,47 +1,47 @@
 
-<script type="text/html" data-template-name="MySQLdatabase">
+<script type="text/html" data-template-name="TDengineDatabase">
     <div class="form-row">
         <label for="node-config-input-name"><i class="fa fa-tag"></i> <span data-i18n="node-red:common.label.name"></span></label>
         <input type="text" id="node-config-input-name" data-i18n="[placeholder]node-red:common.label.name">
     </div>
     <div class="form-row">
-        <label for="node-config-input-host"><i class="fa fa-globe"></i> <span data-i18n="mysql.label.host"></span></label>
+        <label for="node-config-input-host"><i class="fa fa-globe"></i> <span data-i18n="tdengine.label.host"></span></label>
         <input type="text" id="node-config-input-host">
     </div>
     <div class="form-row">
-        <label for="node-config-input-port"><i class="fa fa-random"></i> <span data-i18n="mysql.label.port"></span></label>
+        <label for="node-config-input-port"><i class="fa fa-random"></i> <span data-i18n="tdengine.label.port"></span></label>
         <input type="text" id="node-config-input-port">
     </div>
         <div class="form-row">
-        <label for="node-config-input-user"><i class="fa fa-user"></i> <span data-i18n="mysql.label.user"></span></label>
+        <label for="node-config-input-user"><i class="fa fa-user"></i> <span data-i18n="tdengine.label.user"></span></label>
         <input type="text" id="node-config-input-user">
     </div>
         <div class="form-row">
-        <label for="node-config-input-pass"><i class="fa fa-lock"></i> <span data-i18n="mysql.label.password"></label>
+        <label for="node-config-input-pass"><i class="fa fa-lock"></i> <span data-i18n="tdengine.label.password"></label>
         <input type="password" id="node-config-input-password">
     </div>
     <div class="form-row">
-        <label for="node-config-input-db"><i class="fa fa-database"></i> <span data-i18n="mysql.label.database"></span></label>
+        <label for="node-config-input-db"><i class="fa fa-database"></i> <span data-i18n="tdengine.label.database"></span></label>
         <input type="text" id="node-config-input-db">
     </div>
     <div class="form-row">
-        <label for="node-config-input-tz"><i class="fa fa-clock-o"></i> <span data-i18n="mysql.label.timezone"></span></label>
+        <label for="node-config-input-tz"><i class="fa fa-clock-o"></i> <span data-i18n="tdengine.label.timezone"></span></label>
         <input type="text" id="node-config-input-tz" placeholder="&#177;hh:mm">
     </div>
     <div class="form-row">
-        <label for="node-config-input-charset"><i class="fa fa-language"></i> <span data-i18n="mysql.label.charset"></span></label>
+        <label for="node-config-input-charset"><i class="fa fa-language"></i> <span data-i18n="tdengine.label.charset"></span></label>
         <input type="text" id="node-config-input-charset">
     </div>
-    <div class="form-tips"><span data-i18n="[html]mysql.tip"></span></div>
+    <div class="form-tips"><span data-i18n="[html]tdengine.tip"></span></div>
 </script>
 
 <script type="text/javascript">
-    RED.nodes.registerType('MySQLdatabase',{
+    RED.nodes.registerType('TDengineDatabase',{
         category: 'config',
         defaults: {
             name: {value:""},
-            host: {value:"127.0.0.1",required:true},
-            port: {value:"3306",required:true},
+            host: {value:"192.168.0.26",required:true},
+            port: {value:"6041",required:true},
             db: {value:"",required:true},
             tz: {value:""},
             charset: {value:"UTF8"}
@@ -56,23 +56,23 @@
     });
 </script>
 
-<script type="text/html" data-template-name="mysql">
+<script type="text/html" data-template-name="tdengine">
     <div class="form-row">
         <label for="node-input-name"><i class="fa fa-tag"></i> <span data-i18n="node-red:common.label.name"></span></label>
         <input type="text" id="node-input-name" data-i18n="[placeholder]node-red:common.label.name">
     </div>
     <div class="form-row">
-        <label for="node-input-mydb"><i class="fa fa-database"></i> <span data-i18n="mysql.label.database"></label>
+        <label for="node-input-mydb"><i class="fa fa-database"></i> <span data-i18n="tdengine.label.database"></label>
         <input type="text" id="node-input-mydb">
     </div>
 </script>
 
 <script type="text/javascript">
-    RED.nodes.registerType('mysql',{
+    RED.nodes.registerType('tdengine',{
         category: 'storage-input',
         color:"#e97b00",
         defaults: {
-            mydb: {type:"MySQLdatabase",required:true},
+            mydb: {type:"TDenginedatabase",required:true},
             name: {value:""}
         },
         inputs:1,
