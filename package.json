@@ -3,7 +3,7 @@
     "version": "2.0.0",
     "description": "A Node-RED node to read and write to a TDengine database",
     "dependencies": {
-        "@tdengine/websocket": "^3.0.0"
+        "@tdengine/websocket": "^3.1.5"
     },
     "repository": {
         "type": "git",
