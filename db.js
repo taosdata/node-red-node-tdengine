@@ -1,47 +1,58 @@
-// db.js
 const taos = require('@tdengine/websocket');
 
 class DB {
     constructor(config) {
-        this.host = config.host;
-        this.port = config.port;
-        this.user = config.user;
-        this.password = config.password;
-        this.db = config.db;
+        this.config = config;
         this.wsSql = null;
         this.connected = false;
         this.connecting = false;
-    }
-
-    async connect() {
-        // 如果已经在连接中或已连接，直接返回
-        if (this.connecting || this.connected) return false;
         
+        // 根据配置类型准备连接信息
+        if (config.connectionType === "connection-string") {
+            this.dsn = config.connectionString;
+            this.connectionMethod = "string";
+        } else {
+            // 主机端口方式
+            this.dsn = `ws://${config.host}:${config.port}`;
+            this.connectionMethod = "host-port";
+            this.user = config.user;
+            this.password = config.password;
+            this.db = config.db;
+        }
+    }
+    
+    async connect() {
+        if (this.connecting || this.connected) return false;
         this.connecting = true;
         
         try {
-            const dsn = `ws://${this.host}:${this.port}`;
-            const conf = new taos.WSConfig(dsn);
-            conf.setUser(this.user);
-            conf.setPwd(this.password);
-            conf.setDb(this.db);
+            // 直接使用连接字符串或生成的DSN
+            const conf = new taos.WSConfig(this.dsn);
             
+            // 仅在主机端口方式下设置认证信息
+            if (this.connectionMethod === "host-port") {
+                conf.setUser(this.user);
+                conf.setPwd(this.password);
+                conf.setDb(this.db);
+            }
+            
+            // 连接数据库
             this.wsSql = await taos.sqlConnect(conf);
+            
             this.connected = true;
             this.connecting = false;
-            
-            console.log(`Connected to ${dsn} successfully!`);
+            console.log(`连接成功: ${this.dsn}`);
             return true;
         } catch (error) {
             this.connected = false;
             this.connecting = false;
-            console.error(`Connection to ${dsn} failed: ${error}`);
-            throw error;
+            console.error(`连接失败: ${error.message}`);
+            throw new Error(`连接失败: ${error.message}`);
         }
     }
 
     async query(sql) {
-        if (!this.wsSql) throw new Error('Not connected to database');
+        if (!this.wsSql) throw new Error('未连接到数据库');
         
         try {
             const wsRows = await this.wsSql.query(sql);
@@ -53,7 +64,7 @@ class DB {
                 results: rows
             };
         } catch (error) {
-            throw new Error(`Query failed: ${error.message}`);
+            throw new Error(`查询失败: ${error.message}`);
         }
     }
 
@@ -67,7 +78,7 @@ class DB {
         let count = 0;
         
         while (await wsRows.next()) {
-            if (count > 10000) break; // 安全限制，防止内存溢出
+            if (count > 10000) break;
             
             const rowData = wsRows.getData();
             const rowObj = {};
@@ -89,6 +100,16 @@ class DB {
             this.wsSql = null;
         }
         this.connected = false;
+    }
+    
+    // 获取连接信息
+    getConnectionInfo() {
+        return {
+            method: this.connectionMethod,
+            dsn: this.connectionMethod === "connection-string" ? 
+                this.dsn : 
+                `ws://${this.user}:***@${this.host}:${this.port}/${this.db}`
+        };
     }
 }
 
