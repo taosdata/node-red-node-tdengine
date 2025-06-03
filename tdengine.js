@@ -137,6 +137,13 @@ module.exports = function(RED) {
                 console.log("on input ...");
                 send = send || function() { node.send.apply(node, arguments) };
 
+                if(!node.mydbConfig.connected) {
+                    console.log("input not connect , and try connect....");
+                    node.mydbConfig.connect();
+                }
+
+
+
                 if (node.mydbConfig.connected) {
                     if (typeof msg.topic === 'string') {
                         console.log("query sql:", msg.topic);
@@ -152,39 +159,49 @@ module.exports = function(RED) {
 
                             console.log("call conn.query...");
 
-                            
-                            var rows = [];
-                            let i = 0;
-                            var wsRows = await conn.query(msg.topic);
-                            console.log(wsRows);
+                            try {
+                                var rows = [];
+                                let i = 0;
 
-                            var fields = [];
-                            var metas = await wsRows.getMeta();
-                            metas.forEach((meta, idx) => {
-                                fields.push(meta.name);
-                            });
+                                var wsRows = await conn.query(msg.topic);
+                                console.log(wsRows);
 
-                            console.log("get fields:" + fields);
-
-
-                            while (await wsRows.next() ) {
-                                let row = wsRows.getData();
-
-                                let obj = {};
-                                fields.forEach((field, index) => {
-                                    obj[field] = row[index];
+                                var fields = [];
+                                var metas = await wsRows.getMeta();
+                                metas.forEach((meta, idx) => {
+                                    fields.push(meta.name);
                                 });
-                                rows.push(obj);
-                                console.log('i=', i, " row obj:", obj);
-                                i += 1;
-                                if(i>1000) {
-                                    break;
-                                }
-                            }
 
-                            console.log("query end. rows count=" + i);
-                            msg.payload = rows;
-                            send(msg);
+                                console.log("get fields:" + fields);
+
+
+                                while (await wsRows.next() ) {
+                                    let row = wsRows.getData();
+
+                                    let obj = {};
+                                    fields.forEach((field, index) => {
+                                        obj[field] = row[index];
+                                    });
+                                    rows.push(obj);
+                                    console.log('i=', i, " row obj:", obj);
+                                    i += 1;
+                                    if(i>1000) {
+                                        break;
+                                    }
+                                }
+
+                                console.log("query end. rows count=" + i);
+                                msg.payload = rows;
+                                send(msg);
+
+                            } catch (error) {
+                                console.log("query error:" + error);
+                                node.error(error);
+                                node.mydbConfig.connected = false;
+                                node.emit("state","failed to connect");
+                            }
+                            
+
                         } else {
                             console.log("conn is null.")
                         }
