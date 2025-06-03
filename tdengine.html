@@ -1,37 +1,57 @@
 
 <script type="text/html" data-template-name="TDengineDatabase">
+
     <div class="form-row">
         <label for="node-config-input-name"><i class="fa fa-tag"></i> <span data-i18n="node-red:common.label.name"></span></label>
         <input type="text" id="node-config-input-name" data-i18n="[placeholder]node-red:common.label.name">
     </div>
+
     <div class="form-row">
-        <label for="node-config-input-host"><i class="fa fa-globe"></i> <span data-i18n="tdengine.label.host"></span></label>
-        <input type="text" id="node-config-input-host">
+        <label for="node-config-input-host">
+            <i class="fa fa-link"></i> 连接类型
+        </label>
     </div>
+
     <div class="form-row">
-        <label for="node-config-input-port"><i class="fa fa-random"></i> <span data-i18n="tdengine.label.port"></span></label>
-        <input type="text" id="node-config-input-port">
-    </div>
-        <div class="form-row">
-        <label for="node-config-input-user"><i class="fa fa-user"></i> <span data-i18n="tdengine.label.user"></span></label>
-        <input type="text" id="node-config-input-user">
-    </div>
-        <div class="form-row">
-        <label for="node-config-input-pass"><i class="fa fa-lock"></i> <span data-i18n="tdengine.label.password"></label>
-        <input type="password" id="node-config-input-password">
-    </div>
-    <div class="form-row">
-        <label for="node-config-input-db"><i class="fa fa-database"></i> <span data-i18n="tdengine.label.database"></span></label>
-        <input type="text" id="node-config-input-db">
-    </div>
-    <div class="form-row">
-        <label for="node-config-input-tz"><i class="fa fa-clock-o"></i> <span data-i18n="tdengine.label.timezone"></span></label>
-        <input type="text" id="node-config-input-tz" placeholder="&#177;hh:mm">
-    </div>
-    <div class="form-row">
-        <label for="node-config-input-charset"><i class="fa fa-language"></i> <span data-i18n="tdengine.label.charset"></span></label>
-        <input type="text" id="node-config-input-charset">
-    </div>
+        <label style="display: block; width: 200px; text-align: left;">
+            <input type="radio" name="connection-type" style="width: 30px; margin-bottom: 5px;" value="host-port" > 连接字符串方式
+        </label> 
+
+        <span id="dsn-section">
+            <div class="form-row">
+                <label for="node-config-input-dsn" style="margin-left: 20px;"><i class="fa fa-globe"></i> DSN:</label>
+                <input type="text" id="node-config-input-dsn">
+            </div>
+        </span>
+
+        <label style="display: block; width: 200px; text-align: left;">
+            <input type="radio" name="connection-type" style="width: 30px; margin-bottom: 5px;" value="connection-string" checked> 主机/端口
+        </label>
+        <span id="host-port-section">
+            <div class="form-row">
+                <label for="node-config-input-host" style="margin-left: 20px;"><i class="fa fa-globe"></i> <span data-i18n="tdengine.label.host"></span></label>
+                <input type="text" id="node-config-input-host">
+            </div>
+            <div class="form-row">
+                <label for="node-config-input-port" style="margin-left: 20px;"><i class="fa fa-random"></i> <span data-i18n="tdengine.label.port"></span></label>
+                <input type="text" id="node-config-input-port">
+            </div>
+                <div class="form-row">
+                <label for="node-config-input-user" style="margin-left: 20px;"><i class="fa fa-user"></i> <span data-i18n="tdengine.label.user"></span></label>
+                <input type="text" id="node-config-input-user">
+            </div>
+                <div class="form-row">
+                <label for="node-config-input-pass" style="margin-left: 20px;"><i class="fa fa-lock"></i> <span data-i18n="tdengine.label.password"></label>
+                <input type="password" id="node-config-input-password">
+            </div>
+            <div class="form-row">
+                <label for="node-config-input-db" style="margin-left: 20px;"><i class="fa fa-database"></i> <span data-i18n="tdengine.label.database"></span></label>
+                <input type="text" id="node-config-input-db">
+            </div>
+        </span>    
+    </div>  
+
+
     <div class="form-tips"><span data-i18n="[html]tdengine.tip"></span></div>
 </script>
 
@@ -52,7 +72,32 @@
         },
         label: function() {
             return this.name || this.db;
-        }
+        },
+        oneditprepare: function() {
+            // init
+            const updateDisplay = () => {
+                const type = $("input[name='connection-type']:checked").val();
+                if (type === "host-port") {
+                    $("#dsn-section input").removeAttr("disabled");
+                    $("#host-port-section").hide();
+                } else {
+                    $("#dsn-section input").attr("disabled", "disabled");
+                    $("#host-port-section").show();
+                }
+            };
+            
+            // set
+            $("input[name='connection-type'][value='" + this.connectionType + "']")
+                .prop("checked", true);
+            updateDisplay();
+            
+            // bind env
+            $("input[name='connection-type']").on("change", updateDisplay);
+        },
+        // save 
+        oneditsave: function() {
+            this.connectionType = $("input[name='connection-type']:checked").val();
+        }       
     });
 </script>
 
