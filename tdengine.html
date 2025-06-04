@@ -14,18 +14,18 @@
 
     <div class="form-row">
         <label style="display: block; width: 200px; text-align: left;">
-            <input type="radio" name="connection-type" style="width: 30px; margin-bottom: 5px;" value="host-port" > 连接字符串方式
+            <input type="radio" name="connection-type" style="width: 30px; margin-bottom: 5px;" value="connection-string" checked> 连接字符串方式
         </label> 
 
-        <span id="dsn-section">
+        <span id="uri-section">
             <div class="form-row">
-                <label for="node-config-input-dsn" style="margin-left: 20px;"><i class="fa fa-globe"></i> DSN:</label>
-                <input type="text" id="node-config-input-dsn">
+                <label for="node-config-input-uri" style="margin-left: 20px;"><i class="fa fa-globe"></i> URI:</label>
+                <input type="text" id="node-config-input-uri">
             </div>
         </span>
 
         <label style="display: block; width: 200px; text-align: left;">
-            <input type="radio" name="connection-type" style="width: 30px; margin-bottom: 5px;" value="connection-string" checked> 主机/端口
+            <input type="radio" name="connection-type" style="width: 30px; margin-bottom: 5px;" value="host-port"> 主机/端口
         </label>
         <span id="host-port-section">
             <div class="form-row">
@@ -59,15 +59,15 @@
     RED.nodes.registerType('TDengineDatabase',{
         category: 'config',
         defaults: {
-            name: {value:""},
-            host: {value:"127.0.0.1", required:true},
-            port: {value:"6041", required:true},
-            db: {value:"", required:true},
-            tz: {value:""},
-            charset: {value:"UTF8"}
+            name: {value: "" },
+            uri:  {value: "ws://root:taosdata@localhost:6041" },
+            connType: {value: "connection-string"},
+            host: {value: "127.0.0.1", required: true},
+            port: {value: "6041",      required: true},
+            db:   {value: "",          required: false}
         },
         credentials: {
-            user: {type: "text"},
+            user:     {type: "text"},
             password: {type: "password"}
         },
         label: function() {
@@ -78,17 +78,21 @@
             const updateDisplay = () => {
                 const type = $("input[name='connection-type']:checked").val();
                 if (type === "host-port") {
-                    $("#dsn-section input").removeAttr("disabled");
-                    $("#host-port-section").hide();
-                } else {
-                    $("#dsn-section input").attr("disabled", "disabled");
+                    $("#uri-section input").attr("disabled", "disabled");
                     $("#host-port-section").show();
+                } else {
+                    $("#uri-section input").removeAttr("disabled");
+                    $("#host-port-section").hide();
                 }
             };
             
             // set
-            $("input[name='connection-type'][value='" + this.connectionType + "']")
+            
+            $("input[name='connection-type'][value='" + this.connType + "']")
                 .prop("checked", true);
+            
+            //$("#node-config-input-uri").val(this.uri);
+                
             updateDisplay();
             
             // bind env
@@ -96,7 +100,8 @@
         },
         // save 
         oneditsave: function() {
-            this.connectionType = $("input[name='connection-type']:checked").val();
+            this.connType = $("input[name='connection-type']:checked").val();
+            //this.uri = $("#node-config-input-uri").val();
         }       
     });
 </script>
@@ -117,7 +122,7 @@
         category: 'storage-input',
         color:"#e97b00",
         defaults: {
-            mydb: {type:"TDengineDatabase",required:true},
+            mydb: {type:"TDengineDatabase", required:true},
             name: {value:""}
         },
         inputs:1,

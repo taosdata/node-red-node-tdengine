@@ -13,8 +13,13 @@ module.exports = function(RED) {
         RED.nodes.createNode(this, n);
         this.host = n.host;
         this.port = n.port;
-        this.tz   = n.tz || "local";
-        this.charset = (n.charset || "UTF8_GENERAL_CI").toUpperCase();
+        this.connType = n.connType;
+        this.uri      = n.uri;
+
+        console.log("TDengineNode host:" + this.host);
+        console.log("TDengineNode connType:" + this.connType);
+        console.log("TDengineNode uri:" + this.uri);
+
 
         this.connected = false;
         this.connecting = false;
@@ -28,7 +33,7 @@ module.exports = function(RED) {
             node.pool.query("select server_version();", [], function(err, rows, fields) {
                 if (err) {
                     node.error(err);
-                    node.status({fill:"red",shape:"ring",text:RED._("tdengine.status.badping")});
+                    node.status({fill:"red", shape:"ring", text:RED._("tdengine.status.badping")});
                     doConnect();
                 }
             });
@@ -37,6 +42,16 @@ module.exports = function(RED) {
         async function doConnect() {
             console.log("call doConnect ...");
             console.log("host:" + node.host + " port:" + node.port + " user:" + node.credentials.user + " pass:" + node.credentials.password);
+            console.log("doConnect connType:" + node.connType);
+            console.log("doConnect uri:" + node.uri);
+
+
+            if (node.host == null) {
+                console.log("host is null.");
+                return ;
+            }
+
+            
             node.connecting = true;
             node.emit("state","connecting");
             if (!node.wsSql) {
@@ -60,9 +75,7 @@ module.exports = function(RED) {
                     node.connecting = false;
                     console.log("Connected to " + dsn + " failed! error:" + error)
                     node.emit("state","failed to connect");
-                }
-                
-                
+                }              
             } else {
                 console.log("already is connected.")
             };
@@ -139,6 +152,10 @@ module.exports = function(RED) {
 
                 if(!node.mydbConfig.connected) {
                     console.log("input not connect , and try connect....");
+                    console.log("on input connType:" + node.mydbConfig.connType);
+                    console.log("on input uri:" + node.mydbConfig.uri);
+                    console.log("on input host:" + node.mydbConfig.host);
+
                     node.mydbConfig.connect();
                 }
 
