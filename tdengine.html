@@ -1,5 +1,5 @@
 
-<script type="text/html" data-template-name="TDengineDatabase">
+<script type="text/html" data-template-name="DBEngine">
 
     <div class="form-row">
         <label for="node-config-input-name"><i class="fa fa-tag"></i> <span data-i18n="node-red:common.label.name"></span></label>
@@ -56,7 +56,7 @@
 </script>
 
 <script type="text/javascript">
-    RED.nodes.registerType('TDengineDatabase',{
+    RED.nodes.registerType('DBEngine',{
         category: 'config',
         defaults: {
             name: {value: "" },
@@ -112,8 +112,8 @@
         <input type="text" id="node-input-name" data-i18n="[placeholder]node-red:common.label.name">
     </div>
     <div class="form-row">
-        <label for="node-input-mydb"><i class="fa fa-database"></i> <span data-i18n="tdengine.label.database"></label>
-        <input type="text" id="node-input-mydb">
+        <label for="node-input-db"><i class="fa fa-database"></i> <span data-i18n="tdengine.label.database"></label>
+        <input type="text" id="node-input-db">
     </div>
 </script>
 
@@ -122,15 +122,15 @@
         category: 'storage-input',
         color:"#e97b00",
         defaults: {
-            mydb: {type:"TDengineDatabase", required:true},
+            db:   {type:"DBEngine", required:true},
             name: {value:""}
         },
         inputs:1,
         outputs:1,
         icon: "db.png",
         label: function() {
-            var levelNode = RED.nodes.node(this.mydb);
-            return this.name||(levelNode?levelNode.label():"tdengine");
+            var levelNode = RED.nodes.node(this.db);
+            return this.name||(levelNode ? levelNode.label(): "tdengine");
         },
         labelStyle: function() {
             return this.name?"node_label_italic":"";
