@@ -9,11 +9,31 @@ module.exports = function(RED) {
     // ------------------------------  DBEngine util ----------------------------------
     //
 
+    function sqlType(sql) {
+        // clear
+        let pre = sql
+                    .trim().
+                    substring(0,20).
+                    toLowerCase().
+                    replace(/\s+/g, ' ');
+        
+        console.log("sql prefix:" + pre);
+
+        // check
+        if (pre.startsWith("select ") && 
+            pre.startsWith("show ")) {
+            return 'query';
+        } else {
+            return "exec";
+        }
+    }    
+
+
     function dbInit(node, n) {
         // save db config
         node.connected  = false;
         node.connecting = false;
-        node.wsSql      = null;
+        node.conn      = null;
 
         node.connType = n.connType;
         node.uri      = n.uri;
@@ -118,7 +138,7 @@ module.exports = function(RED) {
             //
             
             updateStatus(node, "start");
-            if (!node.wsSql) {
+            if (!node.conn) {
                 // prepare
                 var conf = null;
                 if (isHostType(node.connType)) {
@@ -137,7 +157,7 @@ module.exports = function(RED) {
 
                 // conn
                 try {
-                    node.wsSql = await taos.sqlConnect(conf);
+                    node.conn = await taos.sqlConnect(conf);
                     // success
                     updateStatus(node, "success");
                 } catch (error) {
@@ -150,23 +170,74 @@ module.exports = function(RED) {
             };
         }
 
-        // exec sql
-        node.exec = async function(topic, payload) {
-            if (node.wsSql) {
-                var bind = [];
-                if (Array.isArray(payload)) {
-                    bind = payload;
-                }
-                else if (typeof payload === 'object' && payload !== null) {
-                    bind = payload;
-                }
+        /* 
+        // stmt 
+        async function stmtInsert(sql, binds) {
+            let stmt = null;
 
+            try{
+                stmt = await node.conn.stmtInit();
+                await stmt.prepare(sql);
+
+                // loop
+                binds.forEach((row, i) => {
+                    row.forEach((col, j) => {
+                        // TODO
+                    });
+                });
+            } catch(err) {
+                node.error(err);
+            }finally {
+                if (stmt) {
+                    await stmt.close();
+                }
+            }
+
+            return null;
+        }
+        */
+
+        //
+        // exec
+        //
+        node.exec = async function(operate, sql, binds) {
+            // check
+            if (node.conn == null) {
+                node.error("exec conn is null.");
+                return null;
+            }
+
+            // stmt insert
+            if(operate == "insert" && Array.isArray(binds)) {
+                // wait taos-connect-nodejs connector support stmt2
+                // return stmtInsert(sql, binds);
+                node.warn("not support stmt bind write.");
+                return null;
+            } 
+
+            // exec
+            try {
+                node.debug("exec sql:" +sql);
+                var result = await node.conn.exec(sql);
+                console.log("result obj:",result);
+                return result;
+            } catch (error) {
+                node.error(error);
+            }
+        }
+
+
+        //
+        // query
+        //
+        node.query = async function(sql) {
+            if (node.conn) {
                 try {
                     var rows = [];
                     let i = 0;
 
-                    node.log("exec sql:" + topic);
-                    var wsRows = await node.wsSql.query(topic);
+                    node.log("query sql:" + sql);
+                    var wsRows = await node.conn.query(sql);
                     node.debug(wsRows);
 
                     var fields = [];
@@ -203,13 +274,15 @@ module.exports = function(RED) {
 
                 }
             } else {
-                node.error("wsSql is null.");
+                node.error("query conn is null.");
             }
 
             return null;
         }
 
-        // interfalce
+        //
+        // connect
+        //
         node.connect = function() {
             if (!node.connected && !node.connecting) {
                 doConnect();
@@ -222,8 +295,8 @@ module.exports = function(RED) {
         node.on('close', function(done) {
             // close db
             if (node.connected) {
-                if (node.wsSql) {
-                    node.wsSql.close();
+                if (node.conn) {
+                    node.conn.close();
                 }      
             }
             
@@ -285,11 +358,20 @@ module.exports = function(RED) {
                 // execute sql
                 if (node.dbEngine.connected) {
                     if (typeof msg.topic === 'string') {
-                        var rows = null;
-                        rows = node.dbEngine.exec(msg.topic, msg.payload);
-                        msg.payload = rows;
-                        send(msg);
-
+                        var sql = msg.topic;
+                        var operate = sqlType(sql);
+                        node.log("operate:" + operate);
+                        if (operate == "query") {
+                            // select show
+                            let rows = node.dbEngine.query(sql);
+                            msg.payload = rows;
+                            send(msg);
+                        } else {
+                            // insert delete alter
+                            let result = node.dbEngine.exec(operate, sql, msg.payload);
+                            msg.payload = result;
+                            send(msg);
+                        }
                     } else {
                         if (typeof msg.topic !== 'string') {
                             node.error("msg.topic : " + RED._("tdengine.errors.notstring")); 
