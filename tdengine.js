@@ -54,7 +54,7 @@ module.exports = function(RED) {
             }
         }
 
-        node.log("check connect param valid!");
+        node.log("check connect param ok!");
         return true;
     }
 
@@ -109,7 +109,7 @@ module.exports = function(RED) {
         //
         async function doConnect() {
             // check 
-            if (checkParamValid(node)) {
+            if (!checkParamValid(node)) {
                 return false;
             }
 
@@ -117,7 +117,7 @@ module.exports = function(RED) {
             // connect db
             //
             
-            updateStatus("start");
+            updateStatus(node, "start");
             if (!node.wsSql) {
                 // prepare
                 var conf = null;
@@ -128,11 +128,11 @@ module.exports = function(RED) {
                     conf.setUser(node.credentials.user);
                     conf.setPwd(node.credentials.password);
                     conf.setDb(node.db);
-                    node.log("connect with host:" + host + " port:" + port);
+                    node.log("connect with host:" + node.host + " port:" + node.port);
                 } else {
                     // connect string
                     conf = new taos.WSConfig(node.uri);
-                    node.log("connect with uri:" + node.uri);
+                    node.log("connect with uri: " + node.uri);
                 }
 
                 // conn
@@ -151,24 +151,22 @@ module.exports = function(RED) {
         }
 
         // exec sql
-        async function exec(msg) {
-    
+        node.exec = async function(topic, payload) {
             if (node.wsSql) {
                 var bind = [];
-                if (Array.isArray(msg.payload)) {
-                    bind = msg.payload;
+                if (Array.isArray(payload)) {
+                    bind = payload;
                 }
-                else if (typeof msg.payload === 'object' && msg.payload !== null) {
-                    bind = msg.payload;
+                else if (typeof payload === 'object' && payload !== null) {
+                    bind = payload;
                 }
-
-                console.log("call conn.query...");
 
                 try {
                     var rows = [];
                     let i = 0;
 
-                    var wsRows = await conn.query(msg.topic);
+                    node.log("exec sql:" + topic);
+                    var wsRows = await node.wsSql.query(topic);
                     node.debug(wsRows);
 
                     var fields = [];
@@ -180,19 +178,17 @@ module.exports = function(RED) {
                     node.debug("get fields:" + fields);
 
 
-                    while (await wsRows.next()) {
-                        let row = wsRows.getData();
+                    while ( await wsRows.next()) {
+                        let row = await wsRows.getData();
 
                         let obj = {};
                         fields.forEach((field, index) => {
                             obj[field] = row[index];
                         });
                         rows.push(obj);
-                        console.log('i=', i, " row obj:", obj);
+                        
+                        console.log("i=",i, " obj:", obj);
                         i += 1;
-                        if (i > 1000) {
-                            break;
-                        }
                     }
 
                     // succ
@@ -218,7 +214,7 @@ module.exports = function(RED) {
             if (!node.connected && !node.connecting) {
                 doConnect();
             } else {
-                console.log("call connect already conn.");
+                node.log("conn is already connected.");
             }
         }
 
@@ -257,10 +253,9 @@ module.exports = function(RED) {
         node.status({});
 
         if (node.dbEngine) {
-            console.log("db config is set, do connect.");
+            node.log("call DBEngine.connect() ...");
             this.dbEngine.connect();
             var node = this;
-            var busy = false;
             var status = {};
 
             // state
@@ -277,21 +272,21 @@ module.exports = function(RED) {
 
             // input sql
             node.on("input",  async function(msg, send, done) {
-                node.debug("recv input msg:" + msg);
+                node.debug("recv input msg.topic:" + msg.topic + " payload:" + msg.payload);
                 send = send || function() { node.send.apply(node, arguments) };
 
                 // try if unconnected
                 if(!node.dbEngine.connected) {
                     node.log("db is unconnected and try to connect....");
                     node.dbEngine.connect();
+                    node.log("reconnect is finished.");
                 }
 
                 // execute sql
                 if (node.dbEngine.connected) {
                     if (typeof msg.topic === 'string') {
-                        console.log("query sql:", msg.topic);
-
-                        rows = node.dbEngine.exec(msg);
+                        var rows = null;
+                        rows = node.dbEngine.exec(msg.topic, msg.payload);
                         msg.payload = rows;
                         send(msg);
 
@@ -314,15 +309,16 @@ module.exports = function(RED) {
 
             // on close
             node.on('close', function() {
-                console.log("on close");
+                node.log("on close");
                 if (node.tout) { clearTimeout(node.tout); }
                 node.dbEngine.removeAllListeners();
                 node.status({});
             });
         }
         else {
-            this.error(RED._("tdengine.errors.notconfigured"));
+            node.error(RED._("tdengine.errors.notconfigured"));
         }
     }
+    // register
     RED.nodes.registerType("tdengine", TDengineNodeIn);
 }
