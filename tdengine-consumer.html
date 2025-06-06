@@ -1,0 +1,85 @@
+<script type="text/javascript">
+    RED.nodes.registerType('tdengine-consumer', {
+        category: 'TDengine',
+        color: '#a6bbcf',
+        defaults: {
+            url: { value: '', required: true },
+            topic: { value: '', required: true },
+            groupId: { value: 'group1' },
+            clientId: { value: '' },
+            autoCommit: { value: true },
+            autoCommitIntervalMs: { value: 1000 },
+            autoOffsetReset: { value: 'earliest' },
+            name: { value: '' }
+        },
+        inputs: 0,
+        outputs: 1,
+        icon: 'database.png', // You can choose a relevant icon
+        label: function () {
+            return this.name || 'TDengine Consumer';
+        },
+        labelStyle: function () {
+            return this.name ? 'node_label_italic' : '';
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="tdengine-consumer">
+    <div class="form-row">
+        <label for="node-input-url"><i class="fa fa-link"></i> URL</label>
+        <input type="text" id="node-input-url">
+    </div>
+    <div class="form-row">
+        <label for="node-input-topic"><i class="fa fa-tag"></i> Topic</label>
+        <input type="text" id="node-input-topic">
+    </div>
+    <div class="form-row">
+        <label for="node-input-groupId"><i class="fa fa-users"></i> Group ID</label>
+        <input type="text" id="node-input-groupId">
+    </div>
+    <div class="form-row">
+        <label for="node-input-clientId"><i class="fa fa-user"></i> Client ID</label>
+        <input type="text" id="node-input-clientId">
+    </div>
+    <div class="form-row">
+        <label for="node-input-autoCommit"><i class="fa fa-check-square-o"></i> Auto Commit</label>
+        <input type="checkbox" id="node-input-autoCommit" style="width:auto;">
+    </div>
+    <div class="form-row" id="auto-commit-interval-row">
+        <label for="node-input-autoCommitIntervalMs"><i class="fa fa-clock-o"></i> Commit Interval (ms)</label>
+        <input type="number" id="node-input-autoCommitIntervalMs">
+    </div>
+    <div class="form-row">
+        <label for="node-input-autoOffsetReset"><i class="fa fa-history"></i> Auto Offset Reset</label>
+        <select id="node-input-autoOffsetReset">
+            <option value="earliest">Earliest</option>
+            <option value="latest">Latest</option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name">
+    </div>
+</script>
+
+<script type="text/html" data-help-name="tdengine-consumer">
+    <p>A Node-RED input node that consumes messages from a TDengine TMQ topic using WebSocket.</p>
+    <p>It connects to the specified TDengine WebSocket URL and subscribes to the given topic.</p>
+    <p>Received messages are output as Node-RED messages with the payload containing the parsed JSON data.</p>
+    <p><b>Configuration:</b></p>
+    <ul>
+        <li><b>URL:</b> The WebSocket URL of your TDengine TMQ instance (e.g., <code>ws://your_tdengine_ip:6041/rest/ws/tmq</code>).</li>
+        <li><b>Topic:</b> The TDengine topic to subscribe to.</li>
+        <li><b>Group ID:</b> The consumer group ID. Defaults to <code>group1</code>.</li>
+        <li><b>Client ID:</b> The client ID for this consumer. Defaults to a unique ID.</li>
+        <li><b>Auto Commit:</b> Whether to automatically commit offsets. Defaults to <code>true</code>.</li>
+        <li><b>Commit Interval (ms):</b> The interval in milliseconds for automatic commits. Defaults to <code>1000</code>.</li>
+        <li><b>Auto Offset Reset:</b> What to do when there is no initial offset in Kafka or if the current offset does not exist any more on the server (e.g. because that data has been deleted):
+            <ul>
+                <li><code>earliest</code>: automatically reset the offset to the earliest offset.</li>
+                <li><code>latest</code>: automatically reset the offset to the latest offset.</li>
+            </ul>
+        </li>
+        <li><b>Name:</b> An optional name for the node in the flow editor.</li>
+    </ul>
+</script>
