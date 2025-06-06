@@ -1,7 +1,22 @@
+/*
+ * Copyright (c) 2025 TAOS Data, Inc. <jhtao@taosdata.com>
+ *
+ * This program is free software: you can use, redistribute, and/or modify
+ * it under the terms of the GNU Affero General Public License, version 3
+ * or later ("AGPL"), as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 module.exports = function(RED) {
     "use strict";
     var reconnect = RED.settings.tdengineReconnectTime || 20000;
-    var taos      = require('@tdengine/websocket');
+    const taos    = require('@tdengine/websocket');
 
 
     process.on('uncaughtException', function (err) {
@@ -34,17 +49,18 @@ module.exports = function(RED) {
     }    
 
 
-    function dbInit(node, n) {
+    // init
+    function dbInit(node, config) {
         // save db config
         node.connected  = false;
         node.connecting = false;
         node.conn      = null;
 
-        node.connType = n.connType;
-        node.uri      = n.uri;
-        node.host     = n.host;
-        node.port     = n.port;
-        node.db       = n.db;
+        node.connType = config.connType;
+        node.uri      = config.uri;
+        node.host     = config.host;
+        node.port     = config.port;
+        node.db       = config.db;
 
         node.debug("dbInit connType: " + node.connType);
         node.debug("dbInit uri:  " + node.uri);
@@ -119,15 +135,15 @@ module.exports = function(RED) {
     //
 
 
-    function DBEngine(n) {    
+    function DBEngine(config) {
         var node = this;
         
         // create node
-        RED.nodes.createNode(node, n);
-        node.log("DBEngine node created.");
+        RED.nodes.createNode(node, config);
+        node.log("create node DBEngine.");
 
         // init db
-        dbInit(node, n);
+        dbInit(node, config);
 
         //
         // do connect

@@ -10,10 +10,18 @@
         "url": "https://github.com/taosdata/node-red-node-tdengine.git",
         "directory": "./"
     },
-    "license": "MIT",
+    "license": "AGPL-3.0-only",
     "keywords": [
         "node-red",
-        "tdengine"
+        "tdengine",
+        "tdengine-consumer",
+        "taos",
+        "td",
+        "subscribe",
+        "consumer",
+        "time series",
+        "tdengine plugin",
+        "node-red-contrib-tdengine"
     ],
     "node-red": {
         "version": ">=3.0.0",
