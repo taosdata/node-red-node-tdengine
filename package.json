@@ -1,6 +1,6 @@
 {
     "name": "node-red-node-tdengine",
-    "version": "2.0.0",
+    "version": "0.1.0",
     "description": "A Node-RED node to read and write to a TDengine database",
     "dependencies": {
         "@tdengine/websocket": "^3.1.5"
@@ -18,12 +18,13 @@
     "node-red": {
         "version": ">=3.0.0",
         "nodes": {
-            "tdengine": "tdengine.js"
+            "tdengine": "tdengine.js",
+            "tdengine-consumer": "tdengine-consumer.js"
         }
     },
     "author": {
-        "name": "Alex Duan",
-        "email": "kjduan@taosdata.com",
+        "name": "tdengine",
+        "email": "support@taosdata.com",
         "url": "https://www.tdengine.com"
     },
     "engines": {

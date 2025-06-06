@@ -1,9 +1,14 @@
-
 module.exports = function(RED) {
     "use strict";
     var reconnect = RED.settings.tdengineReconnectTime || 20000;
     var taos      = require('@tdengine/websocket');
 
+
+    process.on('uncaughtException', function (err) {
+    console.error('Uncaught Exception in Node-RED-TDengine:', err.stack || err);
+        // 可以选择退出进程，但Node-RED默认会尝试继续运行
+        // process.exit(1);
+    });    
 
     //
     // ------------------------------  DBEngine util ----------------------------------
@@ -154,17 +159,29 @@ module.exports = function(RED) {
                     conf = new taos.WSConfig(node.uri);
                     node.log("connect with uri: " + node.uri);
                 }
+                console.log("taos.sqlConnect type is:" + typeof taos.sqlConnect);
 
                 // conn
                 try {
                     node.conn = await taos.sqlConnect(conf);
+
+                    console.log("node.conn:", node.conn);
+                    if (node.conn == null) {
+                        console.log("sqlConnect return null");
+                        throw new Error("connect db have null return .");
+                    }
+                    console.log("step1");
                     // success
                     updateStatus(node, "success");
                 } catch (error) {
                     // failed
-                    node.error(error);
+                    console.log("step2");
                     updateStatus(node, "failed");
-                }              
+                    //node.error(error);
+                } finally {
+                    console.log("connect end.");
+                    console.log("step3");
+                }
             } else {
                 node.log("already is connected.")
             };
