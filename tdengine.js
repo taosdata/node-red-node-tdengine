@@ -18,7 +18,6 @@ module.exports = function(RED) {
     var reconnect = RED.settings.tdengineReconnectTime || 20000;
     const taos    = require('@tdengine/websocket');
 
-
     process.on('uncaughtException', function (err) {
     console.error('Uncaught Exception in Node-RED-TDengine:', err.stack || err);
         // 可以选择退出进程，但Node-RED默认会尝试继续运行
@@ -154,6 +153,9 @@ module.exports = function(RED) {
                 return false;
             }
 
+            console.log("node.credentials.user:", node.credentials.user);
+            console.log("node.credentials.password:", node.credentials.password);
+
             //
             // connect db
             //
@@ -179,7 +181,7 @@ module.exports = function(RED) {
 
                 // conn
                 try {
-                    node.conn = await taos.sqlConnect(conf);
+                    //node.conn = await taos.sqlConnect(conf);
 
                     console.log("node.conn:", node.conn);
                     if (node.conn == null) {

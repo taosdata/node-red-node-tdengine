@@ -1,33 +1,19 @@
-<script type="text/javascript">
-    RED.nodes.registerType('tdengine-consumer', {
-        category: 'storage-input',
-        color: '#a6bb00',
-        defaults: {
-            url: { value: '', required: true },
-            topic: { value: '', required: true },
-            groupId: { value: 'group1' },
-            clientId: { value: '' },
-            autoCommit: { value: true },
-            autoCommitIntervalMs: { value: 1000 },
-            autoOffsetReset: { value: 'earliest' },
-            name: { value: '' }
-        },
-        inputs: 0,
-        outputs: 1,
-        icon: 'database.png', // You can choose a relevant icon
-        label: function () {
-            return this.name || 'TDengine Consumer';
-        },
-        labelStyle: function () {
-            return this.name ? 'node_label_italic' : '';
-        }
-    });
-</script>
-
 <script type="text/html" data-template-name="tdengine-consumer">
     <div class="form-row">
-        <label for="node-input-url"><i class="fa fa-link"></i> URL</label>
-        <input type="text" id="node-input-url">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-uri"><i class="fa fa-link"></i> URL</label>
+        <input type="text" id="node-input-uri">
+    </div>
+    <div class="form-row">
+        <label for="node-input-user"><i class="fa fa-user"></i> User:</label>
+        <input type="text" id="node-input-user">
+    </div>
+    <div class="form-row">
+        <label for="node-input-password"><i class="fa fa-lock"></i> Password:</label>
+        <input type="password" id="node-input-password">
     </div>
     <div class="form-row">
         <label for="node-input-topic"><i class="fa fa-tag"></i> Topic</label>
@@ -42,14 +28,6 @@
         <input type="text" id="node-input-clientId">
     </div>
     <div class="form-row">
-        <label for="node-input-autoCommit"><i class="fa fa-check-square-o"></i> Auto Commit</label>
-        <input type="checkbox" id="node-input-autoCommit" style="width:auto;">
-    </div>
-    <div class="form-row" id="auto-commit-interval-row">
-        <label for="node-input-autoCommitIntervalMs"><i class="fa fa-clock-o"></i> Commit Interval (ms)</label>
-        <input type="number" id="node-input-autoCommitIntervalMs">
-    </div>
-    <div class="form-row">
         <label for="node-input-autoOffsetReset"><i class="fa fa-history"></i> Auto Offset Reset</label>
         <select id="node-input-autoOffsetReset">
             <option value="earliest">Earliest</option>
@@ -57,9 +35,50 @@
         </select>
     </div>
     <div class="form-row">
-        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
-        <input type="text" id="node-input-name">
+        <label for="node-input-timeout"><i class="fa fa-clock-o"></i> Connect timeout:</label>
+        <input type="text" id="node-input-timeout">
+    </div>    
+    <p></p>
+    <div class="form-row">
+        <label for="node-input-autoCommit"><i class="fa fa-code"></i> Auto Commit</label>
+        <input type="checkbox" id="node-input-autoCommit" style="width:auto;">
     </div>
+    <div class="form-row" id="auto-commit-interval-row">
+        <label for="node-input-autoCommitIntervalMs"><i class="fa fa-clock-o"></i> Commit Interval (ms)</label>
+        <input type="number" id="node-input-autoCommitIntervalMs">
+    </div>
+
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('tdengine-consumer', {
+        category: 'storage-input',
+        color: '#a6bb00',
+        defaults: {
+            name: { value: '' },
+            uri: { value: '', required: true },
+            timeout: { value: 5000},
+            topic: { value: '', required: true },
+            groupId: { value: 'group1' },
+            clientId: { value: '' },
+            autoCommitIntervalMs: { value: 1000 },
+            autoOffsetReset: { value: 'earliest' },
+            autoCommit: { value: true }
+        },
+        credentials: {
+            user:     {type: "text"},
+            password: {type: "password"}
+        },        
+        inputs: 0,
+        outputs: 1,
+        icon: 'database.png', // You can choose a relevant icon
+        label: function () {
+            return this.name || 'TDengine Consumer';
+        },
+        labelStyle: function () {
+            return this.name ? 'node_label_italic' : '';
+        }
+    });
 </script>
 
 <script type="text/html" data-help-name="tdengine-consumer">

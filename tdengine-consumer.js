@@ -15,20 +15,25 @@
 
 module.exports = function (RED) {
     const taos = require('@tdengine/websocket');
+    taos.setLevel("debug");
 
     function TDengineConsumerNode(config) {
         const node = this;
 
         // create node
         RED.nodes.createNode(this, config);
-        node.log("create node Consumer.");        
+        node.log("create node Consumer."); 
 
-        let consumer = null;
+        // variant
+        let connected           = false;
+        let connecting          = false;
+        let consumer            = null;
         let reconnectIntervalId = null;
-        const reconnectInterval = 5000; // Attempt reconnect every 5 seconds
+        const reconnectInterval = 5000; //reconnect every 5 seconds if not connected
 
         // Retrieve configuration from the Node-RED editor
         const uri             = config.uri;
+        const timeout         = config.timeout;
         const topic           = config.topic;
         const groupId         = config.groupId         || 'group1';
         const clientId        = config.clientId        || `node-red-client-${node.id}`;
@@ -36,83 +41,121 @@ module.exports = function (RED) {
         const pollingInterval = config.pollingInterval || 2000; // Default polling interval
         const autoOffsetReset = config.autoOffsetReset || 'earliest';
         const autoCommitIntervalMs = config.autoCommitIntervalMs || 1000;
-
         
+        //
         // create consumer instance
+        //
         async function createConsumerInstance() {
+                     
             let configMap = new Map([
+                [taos.TMQConstants.WS_URL,                  uri],
+                [taos.TMQConstants.CONNECT_USER,            node.credentials.user],
+                [taos.TMQConstants.CONNECT_PASS,            node.credentials.password],
+                [taos.TMQConstants.CONNECT_MESSAGE_TIMEOUT, timeout],
                 [taos.TMQConstants.GROUP_ID,                groupId],
                 [taos.TMQConstants.CLIENT_ID,               clientId],
                 [taos.TMQConstants.AUTO_OFFSET_RESET,       autoOffsetReset],
-                [taos.TMQConstants.WS_URL,                  uri],
                 [taos.TMQConstants.ENABLE_AUTO_COMMIT,      String(autoCommit)],
                 [taos.TMQConstants.AUTO_COMMIT_INTERVAL_MS, String(autoCommitIntervalMs)],
             ]);
 
+            // atri log
+            configMap.forEach((v, k) => {
+                if (k != taos.TMQConstants.CONNECT_PASS) {
+                    node.debug("attr " + k + ": " + v);
+                }
+            })
+
             // tmqConnect
             try {
+                node.log("Connect to tmq uri: " + uri + " ...");
                 consumer = await taos.tmqConnect(configMap);
-                node.log(`Connected to TDengine TMQ: ${uri}, Group ID: ${groupId}, Client ID: ${clientId}`);
-                
+                node.log("Connect to tmq server ok.");
+                                
                 // splite topics
                 let topics = topic.split(',').map(item => item.trim());
                 await consumer.subscribe(topics);
-                node.log(`Subscribed to topic: ${topics}`);
+                node.log(`Subscribed topic: ${topics}`);
 
                 // Start polling for messages
                 startPolling();
-                clearInterval(reconnectIntervalId); // Clear any existing reconnect interval
+
+                // success 
+                node.log("Start polling successfully.");
+                updateStatus("success");
+                clearInterval(reconnectIntervalId); // Clear any existing reconnect interval                
             } catch (err) {
                 node.error(`Failed to connect or subscribe: ${err.message}`, err);
+                updateStatus("failed");
                 scheduleReconnect();
             }
         }
 
+        //
+        // parse consumer data, return rows count
+        //
+        function parseConsumeData(res) {
+            let num = 0;
+            // loop
+            for (const [topic, value] of res) {
+                if (value._meta.length > 0) {
+                    let meta = value._meta;
+                    let data = value._data;
+                    let result = [];
+
+                    for (let i = 0; i < data.length; i++) {
+                        let row = {};
+                        for (let j = 0; j < meta.length; j++) {
+                            let fieldName = meta[j].name;
+                            let fieldType = meta[j].type;
+                            let fieldValue = data[i][j];
+
+                            // Convert BigInt to string if necessary
+                            if (fieldType === 'BIGINT') {
+                                fieldValue = BigInt(fieldValue);
+                            }
+
+                            // Add the field to the row object
+                            row[fieldName] = fieldValue;
+                        }
+                        result.push(row);
+                    }
+
+                    console.log("consumer payload:", value);
+                    console.log("consumer result:", result);
+                    // combine msg
+                    let msg = {
+                        topic:     topic,
+                        payload:   result,
+                        database:  value.database,
+                        vgroup_id: value.vgroup_id,
+                        precision: value._precision 
+                    };
+
+                    // send
+                    console.log("send msg:", msg);
+                    node.send(msg);
+
+                    num += result.length;
+                    //node.send({ payload: JSON.parse(JSON.stringify(result, replacer)) });
+                }                            
+                // Send each message as a separate Node-RED message
+            }
+
+        }
+
+        //
         // polling
+        //
         function startPolling() {
+            let num = 0;
             const pollIntervalId = setInterval(async () => {
                 if (consumer) {
                     try {
                         const res = await consumer.poll(pollingInterval); // Poll with a short timeout
-                        for (const [topic, value] of res) {
-                            // console.log(`data: ${JSON.stringify(value, replacer)}`);
-                            if (value._meta.length > 0) {
-                                // console.log(`Received data, value: ${JSON.stringify(value, replacer)}`);
-                                // the value._meta is an array of objects containing the field names and types
-                                // the value._data is an array of arrays containing the actual data
-                                // Please combine the two to create a more readable output
 
-                                let meta = value._meta;
-                                let data = value._data;
-                                let result = [];
-
-                                for (let i = 0; i < data.length; i++) {
-                                    let row = {};
-                                    for (let j = 0; j < meta.length; j++) {
-                                        let fieldName = meta[j].name;
-                                        let fieldType = meta[j].type;
-                                        let fieldValue = data[i][j];
-
-                                        // Convert BigInt to string if necessary
-                                        if (fieldType === 'BIGINT') {
-                                            fieldValue = BigInt(fieldValue);
-                                        }
-
-                                        // Add the field to the row object
-                                        row[fieldName] = fieldValue;
-                                    }
-                                    result.push(row);
-                                }
-
-                                console.log("consumer payload:", value);
-                                console.log("consumer result:", result);
-                                let msg = {topic: topic, payload: result};
-                                console.log("send msg:", msg);
-                                node.send(msg);
-                                //node.send({ payload: JSON.parse(JSON.stringify(result, replacer)) });
-                            }                            
-                            // Send each message as a separate Node-RED message
-                        }
+                        // parse consumer data
+                        num += parseConsumeData(res);
 
                         // auto commit
                         if (!autoCommit) {
@@ -133,6 +176,9 @@ module.exports = function (RED) {
             });
         }
 
+        //
+        // re-connect
+        //
         function scheduleReconnect() {
             if (!reconnectIntervalId) {
                 reconnectIntervalId = setInterval(() => {
@@ -142,6 +188,38 @@ module.exports = function (RED) {
             }
         }
 
+        //
+        // update node status
+        //
+        function updateStatus(status) {
+            if (status == "start") {
+                // start
+                node.connecting = true;
+                node.connected  = false;
+                node.emit("state", "connecting");
+            } else if (status == "success") {
+                // success
+                node.connected  = true;
+                node.connecting = false;
+                node.emit("state", "connected");
+                node.log("Connect tdengine successfully!");
+            } else if(status == "failed") {
+                // failed
+                node.connected  = false;
+                node.connecting = false;
+                node.log("Connect tdengine failed!");
+                node.emit("state", "unconnected");
+            } else if(status == "close") {
+                // close db
+                node.connected  = false;
+                node.connecting = false;
+                node.log("tdengine connection is closed!");
+                node.emit("state", "closed");            
+            } else {
+                node.error("unexpect status:" + status);
+            }
+        }        
+
         this.on('input', async (msg, send, done) => {
             // You might want to add functionality here to dynamically
             // change subscription, commit manually, or other actions
@@ -150,6 +228,19 @@ module.exports = function (RED) {
             done(); // Indicate that the input processing is complete
         });
 
+        // state
+        node.on("state", function(info) {
+            node.log("on state:" + info);
+            if (info === "connecting") {
+                node.status({fill: "grey", shape: "ring", text: info});
+            } else if (info === "connected") {
+                node.status({fill: "green", shape: "dot", text: info});
+            } else {
+                node.status({fill: "red", shape: "ring", text: info});
+            }
+        });        
+
+        // close
         this.on('close', async (done) => {
             node.log('Closing TDengine consumer node.');
             clearInterval(reconnectIntervalId);
@@ -168,11 +259,26 @@ module.exports = function (RED) {
                 taos.destroy();
                 done();
             }
+            updateStatus("close");
         });
+
+        //
+        // start run
+        //
+
+        // start
+        updateStatus("start");
 
         // Initial connection attempt
         createConsumerInstance();
     }
+    // register
+    RED.nodes.registerType("tdengine-consumer", TDengineConsumerNode, {
+        credentials: {
+            user: {type: "text"},
+            password: {type: "password"}
+        }
+    });   
 
     // Custom replacer function to handle BigInt serialization
     function replacer(key, value) {
@@ -181,6 +287,4 @@ module.exports = function (RED) {
         }
         return value;
     }
-
-    RED.nodes.registerType('tdengine-consumer', TDengineConsumerNode);
 };
