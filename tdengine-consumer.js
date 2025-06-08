@@ -29,7 +29,9 @@ module.exports = function (RED) {
         let connecting          = false;
         let consumer            = null;
         let reconnectIntervalId = null;
-        const reconnectInterval = 5000; //reconnect every 5 seconds if not connected
+        let needExit            = false;
+        const reconnectInterval = 5000; // reconnect interval ms
+        const pollTimeout       = 2000; // poll timeout ms
 
         // Retrieve configuration from the Node-RED editor
         const uri             = config.uri;
@@ -38,7 +40,7 @@ module.exports = function (RED) {
         const groupId         = config.groupId         || 'group1';
         const clientId        = config.clientId        || `node-red-client-${node.id}`;
         const autoCommit      = config.autoCommit      || true;
-        const pollingInterval = config.pollingInterval || 2000; // Default polling interval
+        
         const autoOffsetReset = config.autoOffsetReset || 'earliest';
         const autoCommitIntervalMs = config.autoCommitIntervalMs || 1000;
         
@@ -85,7 +87,7 @@ module.exports = function (RED) {
                 updateStatus("success");
                 clearInterval(reconnectIntervalId); // Clear any existing reconnect interval                
             } catch (err) {
-                node.error(`Failed to connect or subscribe: ${err.message}`, err);
+                node.error(`Failed to connect and subscribe: ${err.message}`, err);
                 updateStatus("failed");
                 scheduleReconnect();
             }
@@ -142,37 +144,60 @@ module.exports = function (RED) {
                 // Send each message as a separate Node-RED message
             }
 
+            // return
+            return num;
         }
 
         //
         // polling
         //
         function startPolling() {
-            let num = 0;
-            const pollIntervalId = setInterval(async () => {
-                if (consumer) {
-                    try {
-                        const res = await consumer.poll(pollingInterval); // Poll with a short timeout
+            
+            const pollTimeoutId = setInterval(async () => {
+                
+                // check 
+                if (!consumer) {
+                    node.error("consumer is null, can not start polling.");
+                    return ;
+                }
+                node.log("enter polling mode. timeout ms:" + pollTimeout);
+
+                // while poll
+                try {
+                    while (1) {
+                        if (needExit) {
+                            node.log("close and exit poll loop.");
+                            break;
+                        }
+
+                        node.debug("call poll ...");
+                        const res = await consumer.poll(pollTimeout); // Poll with a short timeout
+                        node.debug("poll return start parse ...");
 
                         // parse consumer data
-                        num += parseConsumeData(res);
+                        let num = parseConsumeData(res);
+                        node.debug("recv and send rows:", num);
 
                         // auto commit
                         if (!autoCommit) {
                             await consumer.commit();
                             node.debug("submit commit by manually.");
                         }
-                    } catch (err) {
-                        node.error(`Error during polling: ${err.message}`, err);
-                        // Consider if you want to trigger a reconnect here or let the main connection handle it
+                        
+                        // TODO need fix only poll once 
+                        break;
                     }
-                } else {
-                    node.error("consumer is null, can not start polling.");
+                } catch (err) {
+                    node.error(`Error during polling: ${err.message}`, err);
+                    // Consider if you want to trigger a reconnect here or let the main connection handle it
                 }
-            }, pollingInterval); // Adjust poll interval as needed
+            }, pollTimeout);
 
+            // on close
             node.on('close', () => {
-                clearInterval(pollIntervalId);
+                node.debug("on close." );
+                needExit = true;
+                clearInterval(pollTimeoutId);
             });
         }
 
@@ -196,24 +221,24 @@ module.exports = function (RED) {
                 // start
                 node.connecting = true;
                 node.connected  = false;
-                node.emit("state", "connecting");
+                node.emit("state", "connecting to tdengine-consumer ...");
             } else if (status == "success") {
                 // success
                 node.connected  = true;
                 node.connecting = false;
                 node.emit("state", "connected");
-                node.log("Connect tdengine successfully!");
+                node.log("Connect tdengine-consumer successfully!");
             } else if(status == "failed") {
                 // failed
                 node.connected  = false;
                 node.connecting = false;
-                node.log("Connect tdengine failed!");
+                node.log("Connect tdengine-consumer failed!");
                 node.emit("state", "unconnected");
             } else if(status == "close") {
                 // close db
                 node.connected  = false;
                 node.connecting = false;
-                node.log("tdengine connection is closed!");
+                node.log("tdengine-consumer is closed!");
                 node.emit("state", "closed");            
             } else {
                 node.error("unexpect status:" + status);

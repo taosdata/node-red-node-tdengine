@@ -181,24 +181,18 @@ module.exports = function(RED) {
 
                 // conn
                 try {
-                    //node.conn = await taos.sqlConnect(conf);
-
+                    node.conn = await taos.sqlConnect(conf);
                     console.log("node.conn:", node.conn);
                     if (node.conn == null) {
                         console.log("sqlConnect return null");
                         throw new Error("connect db have null return .");
                     }
-                    console.log("step1");
                     // success
                     updateStatus(node, "success");
                 } catch (error) {
                     // failed
-                    console.log("step2");
                     updateStatus(node, "failed");
                     //node.error(error);
-                } finally {
-                    console.log("connect end.");
-                    console.log("step3");
                 }
             } else {
                 node.log("already is connected.")
