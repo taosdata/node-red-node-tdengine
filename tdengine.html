@@ -7,25 +7,25 @@
     </div>
 
     <div class="form-row">
-        <label for="node-config-input-host">
-            <i class="fa fa-link"></i> 连接类型
-        </label>
+        <label style="display: block; width: 200px; text-align: left;"><i class="fa fa-plug"></i> <span data-i18n="tdengine.label.conntype" ></span> </label>
     </div>
 
     <div class="form-row">
         <label style="display: block; width: 200px; text-align: left;">
-            <input type="radio" name="connection-type" style="width: 30px; margin-bottom: 5px;" value="connection-string" checked> 连接字符串方式
+            <input type="radio" name="connection-type" style="width: 30px; margin-bottom: 5px;" value="connection-string" checked> 
+            <span data-i18n="tdengine.label.connstring"></span>
         </label> 
 
         <span id="uri-section">
             <div class="form-row">
-                <label for="node-config-input-uri" style="margin-left: 20px;"><i class="fa fa-globe"></i> URI:</label>
+                <label for="node-config-input-uri" style="margin-left: 20px;"><i class="fa fa-link"></i> URI:</label>
                 <input type="text" id="node-config-input-uri">
             </div>
         </span>
 
         <label style="display: block; width: 200px; text-align: left;">
-            <input type="radio" name="connection-type" style="width: 30px; margin-bottom: 5px;" value="host-port"> 主机/端口
+            <input type="radio" name="connection-type" style="width: 30px; margin-bottom: 5px;" value="host-port"> 
+            <span data-i18n="tdengine.label.hostport"></span>
         </label>
         <span id="host-port-section">
             <div class="form-row">
@@ -52,7 +52,7 @@
     </div>  
 
 
-    <div class="form-tips"><span data-i18n="[html]tdengine.tip"></span></div>
+    <div class="form-tips"><span data-i18n="[html]tdengine.tip"></span></div>    
 </script>
 
 <script type="text/javascript">

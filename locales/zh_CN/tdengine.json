@@ -1,13 +1,14 @@
 {
     "tdengine": {
         "label": {
+            "conntype":"连接类型",
+            "connstring":"连接字符串",
+            "hostport":"主机/端口",
             "host": "主机",
             "port": "端口",
             "user": "用户名",
             "password": "密码",
-            "database": "数据库",
-            "timezone": "Timezone",
-            "charset": "Charset"
+            "database": "数据库"
         },
         "status": {
             "badping": "Bad Ping",
@@ -20,6 +21,6 @@
             "notconnected": "Database not connected",
             "notconfigured": "TDengine database not configured"
         },
-        "tip": "Tip: The timezone should be specified as &#177;hh:mm or leave blank for 'local'."
+        "tip": "连接 TDengine 云服务请使用连接字符串方式，所需 token 到云服务网站登录后获取。"
     }
 }

@@ -1,13 +1,14 @@
 {
     "tdengine": {
         "label": {
+            "conntype":"Database Connection Type",
+            "connstring":"Connection String",
+            "hostport":"Host-Port",
             "host": "Host",
             "port": "Port",
             "user": "User",
             "password": "Password",
-            "database": "Database",
-            "timezone": "Timezone",
-            "charset": "Charset"
+            "database": "Database"
         },
         "status": {
             "badping": "Bad Ping",
@@ -18,8 +19,8 @@
         "errors": {
             "notstring": "the query is not defined as a string",
             "notconnected": "Database not connected",
-            "notconfigured": "MySQL database not configured"
+            "notconfigured": "TDengine database not configured"
         },
-        "tip": "Tip: The timezone should be specified as &#177;hh:mm or leave blank for 'local'."
+        "tip": "Tip: Connect to TDengine Cloud Service, use the connection string method. You will need to obtain the token by logging into the cloud service website."
     }
 }
