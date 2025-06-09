@@ -1,0 +1,28 @@
+{
+    "tdengine": {
+        "label": {
+            "uri":"URI",
+            "user": "User",
+            "password": "Password",
+            "topic": "Topics",
+            "groupid": "Grpup ID",
+            "clientid": "Client ID",
+            "offset": "Offset Reset",
+            "timeout": "Connect Timeout(ms)",
+            "autocommit": "Auto Commit",
+            "commitinterval": "Auto Commit Interval(ms)"
+        },
+        "status": {
+            "badping": "Bad Ping",
+            "error": "Error",
+            "ok": "OK",
+            "notconnected": "not yet connected"
+        },
+        "errors": {
+            "notstring": "the query is not defined as a string",
+            "notconnected": "Database not connected",
+            "notconfigured": "MySQL database not configured"
+        },
+        "tip": "Tip: "
+    }
+}

@@ -1,0 +1,21 @@
+<script type="text/html" data-help-name="tdengine-consumer">
+    <p>一个 Node-RED 输入节点，用于通过 WebSocket 从 TDengine TMQ 主题消费消息。</p>
+    <p>它会连接到指定的 TDengine WebSocket URL 并订阅给定的主题。</p>
+    <p>接收到的消息将作为 Node-RED 消息输出，其 payload 为对象数组。</p>
+    <p><b>配置说明：</b></p>
+    <ul>
+        <li><b>URI：</b> TDengine TMQ 实例的 WebSocket 地址（例如：<code>ws://你的_tdengine_ip:6041/rest/ws/tmq</code>）。</li>
+        <li><b>主题：</b> 要订阅的 TDengine 主题。</li>
+        <li><b>消费组 ID：</b> 消费者组 ID，默认值为 <code>group1</code>。</li>
+        <li><b>客户端 ID：</b> 此消费者的客户端 ID，默认值为唯一标识符。</li>
+        <li><b>自动提交：</b> 是否自动提交偏移量，默认值为 <code>true</code>。</li>
+        <li><b>提交间隔（毫秒）：</b> 自动提交的时间间隔（毫秒），默认值为 <code>1000</code>。</li>
+        <li><b>自动偏移量重置：</b> 当 Kafka 中没有初始偏移量或服务器上当前偏移量不存在时（例如数据已被删除）的处理方式：
+    <ul>
+        <li><code>earliest</code>：自动将偏移量重置为最早的偏移量。</li>
+        <li><code>latest</code>：自动将偏移量重置为最新的偏移量。</li>
+    </ul>
+    </li>
+        <li><b>名称：</b> 流程编辑器中该节点的可选名称。</li>
+    </ul>
+</script>

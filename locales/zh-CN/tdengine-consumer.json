@@ -1,14 +1,16 @@
 {
     "tdengine": {
         "label": {
-            "conntype":"连接类型",
-            "connstring":"连接字符串",
-            "hostport":"主机/端口",
-            "host": "主机",
-            "port": "端口",
+            "uri":"订阅服务器",
             "user": "用户名",
             "password": "密码",
-            "database": "数据库"
+            "topic": "订阅主题组",
+            "groupid": "消费组ID",
+            "clientid": "客户端ID",
+            "offset": "消费开始位置",
+            "timeout": "连接超时时间(ms)",
+            "autocommit": "自动提交",
+            "commitinterval": "自动提交间隔时间（ms）"
         },
         "status": {
             "badping": "Bad Ping",
@@ -21,6 +23,6 @@
             "notconnected": "Database not connected",
             "notconfigured": "TDengine database not configured"
         },
-        "tip": "连接 TDengine 云服务请使用连接字符串方式，所需 token 到云服务网站登录后获取。"
+        "tip": "Tip: The timezone should be specified as &#177;hh:mm or leave blank for 'local'."
     }
 }

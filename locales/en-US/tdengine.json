@@ -21,6 +21,6 @@
             "notconnected": "Database not connected",
             "notconfigured": "TDengine database not configured"
         },
-        "tip": "Tip: Connect to TDengine Cloud Service, use the connection string method. You will need to obtain the token by logging into the cloud service website."
+        "tip": "Tip: Connect to TDengine Cloud Service, use the connection string method. Acquire the required connection information after logging into the cloud service website.​​"
     }
 }
