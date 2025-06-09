@@ -59,12 +59,12 @@
     RED.nodes.registerType('DBEngine',{
         category: 'config',
         defaults: {
-            name: {value: "" },
-            uri:  {value: "ws://root:taosdata@localhost:6041" },
+            name:     {value: "" },
+            uri:      {value: "ws://root:taosdata@localhost:6041" },
             connType: {value: "connection-string"},
-            host: {value: "127.0.0.1", required: true},
-            port: {value: "6041",      required: true},
-            db:   {value: "",          required: false}
+            host:     {value: "127.0.0.1", required: true},
+            port:     {value: "6041",      required: true},
+            db:       {value: "" }
         },
         credentials: {
             user:     {type: "text"},

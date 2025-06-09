@@ -35,8 +35,8 @@
         </select>
     </div>
     <div class="form-row">
-        <label for="node-input-timeout"><i class="fa fa-clock-o"></i><span data-i18n="tdengine.label.timeout"></span></label>
-        <input type="text" id="node-input-timeout">
+        <label for="node-input-pollTimeout"><i class="fa fa-clock-o"></i><span data-i18n="tdengine.label.polltimeout"></span></label>
+        <input type="text" id="node-input-pollTimeout">
     </div>    
     <p></p>
     <div class="form-row">
@@ -55,15 +55,15 @@
         category: 'storage-input',
         color: '#a6bb00',
         defaults: {
-            name: { value: '' },
-            uri: { value: '', required: true },
-            timeout: { value: 5000},
-            topic: { value: '', required: true },
-            groupId: { value: 'group1' },
-            clientId: { value: '' },
+            name:        { value: '' },
+            uri:         { value: '', required: true },
+            pollTimeout: { value: 5000},
+            topic:       { value: '', required: true },
+            groupId:     { value: 'group1' },
+            clientId:    { value: '' },
             autoCommitIntervalMs: { value: 1000 },
-            autoOffsetReset: { value: 'earliest' },
-            autoCommit: { value: true }
+            autoOffsetReset:      { value: 'earliest' },
+            autoCommit:           { value: true }
         },
         credentials: {
             user:     {type: "text"},

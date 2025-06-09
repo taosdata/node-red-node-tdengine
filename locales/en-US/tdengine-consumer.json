@@ -8,7 +8,7 @@
             "groupid": "Grpup ID",
             "clientid": "Client ID",
             "offset": "Offset Reset",
-            "timeout": "Connect Timeout(ms)",
+            "polltimeout": "Poll Timeout(ms)",
             "autocommit": "Auto Commit",
             "commitinterval": "Auto Commit Interval(ms)"
         },

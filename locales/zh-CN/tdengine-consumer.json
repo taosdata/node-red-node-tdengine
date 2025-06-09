@@ -8,7 +8,7 @@
             "groupid": "消费组ID",
             "clientid": "客户端ID",
             "offset": "消费开始位置",
-            "timeout": "连接超时时间(ms)",
+            "polltimeout": "Poll超时时间(ms)",
             "autocommit": "自动提交",
             "commitinterval": "自动提交间隔时间（ms）"
         },

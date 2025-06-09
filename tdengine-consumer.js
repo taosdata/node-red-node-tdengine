@@ -15,6 +15,7 @@
 
 module.exports = function (RED) {
     const taos = require('@tdengine/websocket');
+    // develop mode TODO
     taos.setLevel("debug");
 
     function TDengineConsumerNode(config) {
@@ -31,11 +32,12 @@ module.exports = function (RED) {
         let reconnectIntervalId = null;
         let needExit            = false;
         const reconnectInterval = 5000; // reconnect interval ms
-        const pollTimeout       = 2000; // poll timeout ms
 
         // Retrieve configuration from the Node-RED editor
+        //const uri = "ws://192.168.0.26:6041";
+        
         const uri             = config.uri;
-        const timeout         = config.timeout;
+        const pollTimeout     = config.pollTimeout     || 5000; 
         const topic           = config.topic;
         const groupId         = config.groupId         || 'group1';
         const clientId        = config.clientId        || `node-red-client-${node.id}`;
@@ -44,6 +46,39 @@ module.exports = function (RED) {
         const autoOffsetReset = config.autoOffsetReset || 'earliest';
         const autoCommitIntervalMs = config.autoCommitIntervalMs || 1000;
         
+        // check param valid
+        function checkParamValid(uri, topic) {
+            //
+            // url
+            //
+            if (uri == null ) {
+                node.error("invalid param, connect uri is null.");
+                updateStatus("invalid param");
+                return false;
+            }
+            if (uri.trim().length < 5 ) {
+                node.error("invalid param, connect uri is too short. uri:" + uri);
+                updateStatus("invalid param");
+                return false;
+            }
+
+            //
+            // topic
+            //
+            if (topic == null ) {
+                node.error("invalid param, topic is null.");
+                node.updateStatus("invalid param");
+                return false;
+            }
+            if (topic.trim().length == 0 ) {
+                node.error("invalid param, topic is empty.");
+                node.updateStatus("invalid param");
+                return false;
+            }
+
+            return true;
+        }
+
         //
         // create consumer instance
         //
@@ -53,7 +88,7 @@ module.exports = function (RED) {
                 [taos.TMQConstants.WS_URL,                  uri],
                 [taos.TMQConstants.CONNECT_USER,            node.credentials.user],
                 [taos.TMQConstants.CONNECT_PASS,            node.credentials.password],
-                [taos.TMQConstants.CONNECT_MESSAGE_TIMEOUT, timeout],
+                [taos.TMQConstants.CONNECT_MESSAGE_TIMEOUT, pollTimeout],
                 [taos.TMQConstants.GROUP_ID,                groupId],
                 [taos.TMQConstants.CLIENT_ID,               clientId],
                 [taos.TMQConstants.AUTO_OFFSET_RESET,       autoOffsetReset],
@@ -63,10 +98,17 @@ module.exports = function (RED) {
 
             // atri log
             configMap.forEach((v, k) => {
-                if (k != taos.TMQConstants.CONNECT_PASS) {
+                if (k == taos.TMQConstants.CONNECT_PASS) {
+                    node.debug("attr " + k + ": " + v.substring(0,2) + "****");
+                } else {
                     node.debug("attr " + k + ": " + v);
                 }
             })
+
+            // check param
+            if(!checkParamValid(uri, topic)) {
+                return ;
+            }
 
             // tmqConnect
             try {
@@ -152,8 +194,17 @@ module.exports = function (RED) {
         // polling
         //
         function startPolling() {
+
+            // if no data msg return true else false
+            function checkNoDataMsg(err) {
+                // find key            
+                if  (err.indexOf(" timeout with ") >= 0) {
+                    return true;
+                }
+                return false;
+            }
             
-            const pollTimeoutId = setInterval(async () => {
+            const pollTimeoutId = setTimeout(async () => {
                 
                 // check 
                 if (!consumer) {
@@ -163,13 +214,15 @@ module.exports = function (RED) {
                 node.log("enter polling mode. timeout ms:" + pollTimeout);
 
                 // while poll
-                try {
-                    while (1) {
+                while (1) {
+                    try {
+                        // check to break if closing node
                         if (needExit) {
                             node.log("close and exit poll loop.");
                             break;
                         }
 
+                        // start poll
                         node.debug("call poll ...");
                         const res = await consumer.poll(pollTimeout); // Poll with a short timeout
                         node.debug("poll return start parse ...");
@@ -182,22 +235,23 @@ module.exports = function (RED) {
                         if (!autoCommit) {
                             await consumer.commit();
                             node.debug("submit commit by manually.");
+                        }                                            
+                    } catch (err) {
+                        // check no data
+                        if (checkNoDataMsg(err.message)) {
+                            node.debug(`Catch no data msg: ${err.message}`);
+                        } else {
+                            node.error(`Catch error during polling: ${err.message}`, err);
                         }
-                        
-                        // TODO need fix only poll once 
-                        break;
                     }
-                } catch (err) {
-                    node.error(`Error during polling: ${err.message}`, err);
-                    // Consider if you want to trigger a reconnect here or let the main connection handle it
                 }
-            }, pollTimeout);
+            },  0);
 
             // on close
             node.on('close', () => {
                 node.debug("on close." );
                 needExit = true;
-                clearInterval(pollTimeoutId);
+                clearTimeout(pollTimeoutId);
             });
         }
 
@@ -221,7 +275,13 @@ module.exports = function (RED) {
                 // start
                 node.connecting = true;
                 node.connected  = false;
-                node.emit("state", "connecting to tdengine-consumer ...");
+                node.emit("state", "starting");
+            } else if (status == "invalid param") {
+                // uninit
+                node.connected  = false;
+                node.connecting = false;
+                node.emit("state", "invalid param");
+                node.log("node status is uninit!");
             } else if (status == "success") {
                 // success
                 node.connected  = true;
@@ -256,7 +316,9 @@ module.exports = function (RED) {
         // state
         node.on("state", function(info) {
             node.log("on state:" + info);
-            if (info === "connecting") {
+            if (info == "invalid param") {
+                node.status({fill: "red", shape: "ring", text: info});
+            } else if (info === "connecting") {
                 node.status({fill: "grey", shape: "ring", text: info});
             } else if (info === "connected") {
                 node.status({fill: "green", shape: "dot", text: info});
