@@ -15,8 +15,7 @@
 
 module.exports = function (RED) {
     const taos = require('@tdengine/websocket');
-    // develop mode TODO
-    taos.setLevel("debug");
+    //taos.setLevel("debug");
 
     function TDengineConsumerNode(config) {
         const node = this;
@@ -34,8 +33,6 @@ module.exports = function (RED) {
         const reconnectInterval = 5000; // reconnect interval ms
 
         // Retrieve configuration from the Node-RED editor
-        //const uri = "ws://192.168.0.26:6041";
-        
         const uri             = config.uri;
         const pollTimeout     = config.pollTimeout     || 5000; 
         const topic           = config.topic;
@@ -113,7 +110,11 @@ module.exports = function (RED) {
             // tmqConnect
             try {
                 node.log("Connect to tmq uri: " + uri + " ...");
-                consumer = await taos.tmqConnect(configMap);
+                try {
+                    consumer = await taos.tmqConnect(configMap);
+                }catch(error) {
+                    node.log("tmpConnect catch error.");
+                }
                 node.log("Connect to tmq server ok.");
                                 
                 // splite topics
@@ -129,9 +130,10 @@ module.exports = function (RED) {
                 updateStatus("success");
                 clearInterval(reconnectIntervalId); // Clear any existing reconnect interval                
             } catch (err) {
-                node.error(`Failed to connect and subscribe: ${err.message}`, err);
+                node.log("connect have error", err);
+                //node.error(`Failed to connect and subscribe: ${err.message}`, err);
                 updateStatus("failed");
-                scheduleReconnect();
+                scheduleReconnect();          
             }
         }
 
@@ -165,8 +167,8 @@ module.exports = function (RED) {
                         result.push(row);
                     }
 
-                    console.log("consumer payload:", value);
-                    console.log("consumer result:", result);
+                    node.debug("consumer payload:" + JSON.stringify(value,  replacer));
+                    node.debug("consumer result:"  + JSON.stringify(result, replacer));
                     // combine msg
                     let msg = {
                         topic:     topic,
@@ -177,7 +179,7 @@ module.exports = function (RED) {
                     };
 
                     // send
-                    console.log("send msg:", msg);
+                    node.debug("send msg:" + JSON.stringify(msg, replacer));
                     node.send(msg);
 
                     num += result.length;
@@ -211,7 +213,9 @@ module.exports = function (RED) {
                     node.error("consumer is null, can not start polling.");
                     return ;
                 }
-                node.log("enter polling mode. timeout ms:" + pollTimeout);
+
+                let pollArg = Math.round(pollTimeout * 0.6);
+                node.log("enter polling mode, pollArg:" + pollArg);
 
                 // while poll
                 while (1) {
@@ -224,12 +228,12 @@ module.exports = function (RED) {
 
                         // start poll
                         node.debug("call poll ...");
-                        const res = await consumer.poll(pollTimeout); // Poll with a short timeout
+                        const res = await consumer.poll(pollArg); // Poll with a short timeout
                         node.debug("poll return start parse ...");
 
                         // parse consumer data
                         let num = parseConsumeData(res);
-                        node.debug("recv and send rows:", num);
+                        node.debug("consumer recv and send rows:" + num);
 
                         // auto commit
                         if (!autoCommit) {
@@ -262,7 +266,11 @@ module.exports = function (RED) {
             if (!reconnectIntervalId) {
                 reconnectIntervalId = setInterval(() => {
                     node.log('Attempting to reconnect to TDengine...');
-                    createConsumerInstance();
+                    try {
+                        createConsumerInstance();
+                    } catch {
+                        node.log("catch except call re-createConsumerInstance()");
+                    }                    
                 }, reconnectInterval);
             }
         }
@@ -357,7 +365,12 @@ module.exports = function (RED) {
         updateStatus("start");
 
         // Initial connection attempt
-        createConsumerInstance();
+        try {
+            createConsumerInstance();
+        } catch {
+            node.log("catch except call createConsumerInstance()");
+        }
+        
     }
     // register
     RED.nodes.registerType("tdengine-consumer", TDengineConsumerNode, {

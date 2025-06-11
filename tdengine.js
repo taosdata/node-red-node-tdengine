@@ -13,16 +13,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+
 module.exports = function(RED) {
     "use strict";
     var reconnect = RED.settings.tdengineReconnectTime || 20000;
     const taos    = require('@tdengine/websocket');
-
-    process.on('uncaughtException', function (err) {
-    console.error('Uncaught Exception in Node-RED-TDengine:', err.stack || err);
-        // 可以选择退出进程，但Node-RED默认会尝试继续运行
-        // process.exit(1);
-    });    
+    //taos.setLevel("debug");
 
     //
     // ------------------------------  DBEngine util ----------------------------------
@@ -153,13 +149,10 @@ module.exports = function(RED) {
                 return false;
             }
 
-            console.log("node.credentials.user:", node.credentials.user);
-            console.log("node.credentials.password:", node.credentials.password);
-
             //
             // connect db
             //
-            
+
             updateStatus(node, "start");
             if (!node.conn) {
                 // prepare
@@ -177,12 +170,11 @@ module.exports = function(RED) {
                     conf = new taos.WSConfig(node.uri);
                     node.log("connect with uri: " + node.uri);
                 }
-                console.log("taos.sqlConnect type is:" + typeof taos.sqlConnect);
 
                 // conn
                 try {
+                    node.debug("start call taos.sqlConnect...");
                     node.conn = await taos.sqlConnect(conf);
-                    console.log("node.conn:", node.conn);
                     if (node.conn == null) {
                         console.log("sqlConnect return null");
                         throw new Error("connect db have null return .");
@@ -192,10 +184,10 @@ module.exports = function(RED) {
                 } catch (error) {
                     // failed
                     updateStatus(node, "failed");
-                    //node.error(error);
+                    node.error(error);
                 }
             } else {
-                node.log("already is connected.")
+                node.log("already is connected.");
             };
         }
 
@@ -246,9 +238,9 @@ module.exports = function(RED) {
 
             // exec
             try {
-                node.debug("exec sql:" +sql);
+                node.debug("exec sql:" + sql);
                 var result = await node.conn.exec(sql);
-                console.log("result obj:",result);
+                node.debug("result obj:", result);
                 return result;
             } catch (error) {
                 node.error(error);
@@ -314,7 +306,11 @@ module.exports = function(RED) {
         //
         node.connect = function() {
             if (!node.connected && !node.connecting) {
-                doConnect();
+                try {
+                    doConnect();
+                } catch {
+                    node.log("catch doConnect except.");
+                }
             } else {
                 node.log("conn is already connected.");
             }
@@ -325,10 +321,12 @@ module.exports = function(RED) {
             // close db
             if (node.connected) {
                 if (node.conn) {
+                    node.debug("on close conn.close().");
                     node.conn.close();
                 }      
             }
             
+            node.debug("on close taos.destroy().");
             taos.destroy();
             updateStatus(node, "close");
             done();
