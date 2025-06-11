@@ -31,9 +31,6 @@ module.exports = function(RED) {
                     substring(0,20).
                     toLowerCase().
                     replace(/\s+/g, ' ');
-        
-        console.log("sql prefix:" + pre);
-
         // check
         if (pre.startsWith("select ") && 
             pre.startsWith("show ")) {
