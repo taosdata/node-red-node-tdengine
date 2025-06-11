@@ -14,7 +14,7 @@
  */
 
 module.exports = function (RED) {
-    const taos = require('@tdengine/websocket');
+    var taos = require('@tdengine/websocket');
     //taos.setLevel("debug");
 
     function TDengineConsumerNode(config) {
@@ -76,11 +76,18 @@ module.exports = function (RED) {
             return true;
         }
 
+        // tmq work ok notify
+        function notifyWorkOK() {
+            node.log("Connect and subscribe OK!");
+            updateStatus("success");
+            clearInterval(reconnectIntervalId); // Clear any existing reconnect interval
+            reconnectIntervalId = 0;
+        }
+
         //
         // create consumer instance
         //
         async function createConsumerInstance() {
-                     
             let configMap = new Map([
                 [taos.TMQConstants.WS_URL,                  uri],
                 [taos.TMQConstants.CONNECT_USER,            node.credentials.user],
@@ -110,11 +117,8 @@ module.exports = function (RED) {
             // tmqConnect
             try {
                 node.log("Connect to tmq uri: " + uri + " ...");
-                try {
-                    consumer = await taos.tmqConnect(configMap);
-                }catch(error) {
-                    node.log("tmpConnect catch error.");
-                }
+
+                consumer = await taos.tmqConnect(configMap);
                 node.log("Connect to tmq server ok.");
                                 
                 // splite topics
@@ -124,16 +128,17 @@ module.exports = function (RED) {
 
                 // Start polling for messages
                 startPolling();
+                node.log("Start polling successfully.");
 
                 // success 
-                node.log("Start polling successfully.");
-                updateStatus("success");
-                clearInterval(reconnectIntervalId); // Clear any existing reconnect interval                
+                notifyWorkOK();
             } catch (err) {
-                node.log("connect have error", err);
-                //node.error(`Failed to connect and subscribe: ${err.message}`, err);
-                updateStatus("failed");
-                scheduleReconnect();          
+                let msg = `Failed to connect and subscribe: ${err.message}`;
+                console.log(err);
+                node.log(msg)
+                node.error(msg, err);
+                
+                scheduleReconnect();
             }
         }
 
@@ -206,7 +211,7 @@ module.exports = function (RED) {
                 return false;
             }
             
-            const pollTimeoutId = setTimeout(async () => {
+            (async function pollLoop() {
                 
                 // check 
                 if (!consumer) {
@@ -240,16 +245,19 @@ module.exports = function (RED) {
                             await consumer.commit();
                             node.debug("submit commit by manually.");
                         }                                            
-                    } catch (err) {
+                    } catch (error) {
                         // check no data
-                        if (checkNoDataMsg(err.message)) {
-                            node.debug(`Catch no data msg: ${err.message}`);
+                        console.log("poolLoop catch error:", error);
+                        if (checkNoDataMsg(error.message)) {
+                            node.debug(`Catch no data msg: ${error.message}`);
                         } else {
-                            node.error(`Catch error during polling: ${err.message}`, err);
+                            node.error(`Catch error during polling: ${error.message}`, error);
                         }
+                        scheduleReconnect();
+                        break;
                     }
                 }
-            },  0);
+            })();
 
             // on close
             node.on('close', () => {
@@ -264,14 +272,25 @@ module.exports = function (RED) {
         //
         function scheduleReconnect() {
             if (!reconnectIntervalId) {
+                // update status
+                updateStatus("failed");
+                node.log(`start reconnect after sleep ${reconnectInterval} ...`);
+
+                // re-connect
                 reconnectIntervalId = setInterval(() => {
-                    node.log('Attempting to reconnect to TDengine...');
+                    node.log(`Attempting to reconnect(id=${reconnectIntervalId}) to TDengine...`);
                     try {
+                        // destroy
+                        node.debug("call taos.destroy()");
+                        taos.destroy()
+                        // re-create
                         createConsumerInstance();
-                    } catch {
-                        node.log("catch except call re-createConsumerInstance()");
+                    } catch(error) {
+                        console.log("do reconnect tmp except:", error);
                     }                    
-                }, reconnectInterval);
+                }, reconnectInterval);                
+            } else {
+                node.log(`already in reconnecting(id=${reconnectIntervalId}) ...`);
             }
         }
 

@@ -24,23 +24,6 @@ module.exports = function(RED) {
     // ------------------------------  DBEngine util ----------------------------------
     //
 
-    function sqlType(sql) {
-        // clear
-        let pre = sql
-                    .trim().
-                    substring(0,20).
-                    toLowerCase().
-                    replace(/\s+/g, ' ');
-        // check
-        if (pre.startsWith("select ") && 
-            pre.startsWith("show ")) {
-            return 'query';
-        } else {
-            return "exec";
-        }
-    }    
-
-
     // init
     function dbInit(node, config) {
         // save db config
@@ -365,6 +348,24 @@ module.exports = function(RED) {
         node.log("TDengine DBNodeIn created.");
         node.dbEngine = RED.nodes.getNode(n.db);
         node.status({});
+
+        // sql type
+        function sqlType(sql) {
+            // clear
+            let pre = sql
+                        .trim().
+                        substring(0,20).
+                        toLowerCase().
+                        replace(/\s+/g, ' ');
+            // check
+            node.debug("pre sql:" + pre);
+            if (pre.startsWith("select ") || 
+                pre.startsWith("show ")) {
+                return 'query';
+            } else {
+                return "exec";
+            }
+        }
 
         if (node.dbEngine) {
             node.log("call DBEngine.connect() ...");
