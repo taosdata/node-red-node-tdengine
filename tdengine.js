@@ -218,6 +218,23 @@ module.exports = function(RED) {
         }
         */
 
+        // cover taos_connect_node result object to node-red result object
+        function covResult(result) {
+            try {
+                let obj = {
+                    affectRows: result._affectRows,
+                    totalTime:  result._totalTime,
+                    timing:     result._timing
+                };
+                return obj;
+            } catch (error) {
+                node.error(error);
+            }
+
+            // return 
+            return null;
+        }
+
         //
         // exec
         //
@@ -240,8 +257,8 @@ module.exports = function(RED) {
             try {
                 node.debug("exec sql:" + sql);
                 var result = await node.conn.exec(sql);
-                node.debug("result obj:", result);
-                return result;
+                node.debug("result obj:" + JSON.stringify(result, replacer));
+                return covResult(result);
             } catch (error) {
                 node.error(error);
             }
@@ -267,7 +284,7 @@ module.exports = function(RED) {
                         fields.push(meta.name);
                     });
 
-                    node.debug("get fields:" + fields);
+                    node.debug("get fields:" + JSON.stringify(fields, replacer));
 
 
                     while ( await wsRows.next()) {
@@ -279,7 +296,7 @@ module.exports = function(RED) {
                         });
                         rows.push(obj);
                         
-                        console.log("i=",i, " obj:", obj);
+                        console.log("i=",i, " obj:", JSON.stringify(obj, replacer));
                         i += 1;
                     }
 
@@ -373,54 +390,60 @@ module.exports = function(RED) {
             // input sql
             node.on("input",  async function(msg, send, done) {
                 node.debug("recv input msg.topic:" + msg.topic + " payload:" + msg.payload);
-                send = send || function() { node.send.apply(node, arguments) };
 
-                // try if unconnected
-                if(!node.dbEngine.connected) {
-                    node.log("db is unconnected and try to connect....");
-                    node.dbEngine.connect();
-                    node.log("reconnect is finished.");
-                }
+                try {
+                    send = send || function() { node.send.apply(node, arguments) };
 
-                // execute sql
-                if (node.dbEngine.connected) {
-                    if (typeof msg.topic === 'string') {
-                        var sql = msg.topic;
-                        var operate = sqlType(sql);
-                        node.log("operate:" + operate);
-                        if (operate == "query") {
-                            // select show
-                            let rows = node.dbEngine.query(sql);
-                            msg.payload = rows;
-                            send(msg);
+                    // try if unconnected
+                    if(!node.dbEngine.connected) {
+                        node.log("db is unconnected and try to connect....");
+                        node.dbEngine.connect();
+                        node.log("reconnect is finished.");
+                    }
+
+                    // execute sql
+                    if (node.dbEngine.connected) {
+                        if (typeof msg.topic === 'string') {
+                            var sql = msg.topic;
+                            var operate = sqlType(sql);
+                            node.log("operate:" + operate);
+                            if (operate == "query") {
+                                // select show
+                                let rows = await node.dbEngine.query(sql);
+                                msg.payload = rows;
+                                send(msg);
+                            } else {
+                                // insert delete alter
+                                let result = await node.dbEngine.exec(operate, sql, msg.payload);
+                                msg.payload = result;
+                                send(msg);
+                            }
                         } else {
-                            // insert delete alter
-                            let result = node.dbEngine.exec(operate, sql, msg.payload);
-                            msg.payload = result;
-                            send(msg);
+                            if (typeof msg.topic !== 'string') {
+                                node.error("msg.topic : " + RED._("tdengine.errors.notstring")); 
+                            }
                         }
                     } else {
-                        if (typeof msg.topic !== 'string') {
-                            node.error("msg.topic : " + RED._("tdengine.errors.notstring")); 
-                            done();
-                        }
+                        node.error(RED._("tdengine.errors.notconnected"),msg);
+                        status = {
+                            fill:"red",
+                            shape:"ring",
+                            text:RED._("tdengine.status.notconnected")
+                        };
                     }
-                } else {
-                    node.error(RED._("tdengine.errors.notconnected"),msg);
-                    status = {
-                        fill:"red",
-                        shape:"ring",
-                        text:RED._("tdengine.status.notconnected")
-                    };
-                    if (done) { done(); }
+                } catch(error) {
+                    node.error(error);
+                } finally {
+                    // input msg deal finished
+                    if (done) { 
+                        done(); 
+                    }
                 }
             });
 
             // on close
             node.on('close', function() {
                 node.log("on close");
-                if (node.tout) { clearTimeout(node.tout); }
-                node.dbEngine.removeAllListeners();
                 node.status({});
             });
         }
@@ -430,4 +453,12 @@ module.exports = function(RED) {
     }
     // register
     RED.nodes.registerType("tdengine", TDengineNodeIn);
+
+    // json string
+    function replacer(key, value) {
+        if (typeof value === 'bigint') {
+            return value.toString(); // Convert BigInt to string
+        }
+        return value;
+    }
 }

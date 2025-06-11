@@ -229,11 +229,11 @@ module.exports = function (RED) {
                         // start poll
                         node.debug("call poll ...");
                         const res = await consumer.poll(pollArg); // Poll with a short timeout
-                        node.debug("poll return start parse ...");
+                        node.debug("poll start parse ...");
 
                         // parse consumer data
                         let num = parseConsumeData(res);
-                        node.debug("consumer recv and send rows:" + num);
+                        node.debug("consumer send rows:" + num);
 
                         // auto commit
                         if (!autoCommit) {
