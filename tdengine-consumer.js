@@ -38,11 +38,11 @@ module.exports = function (RED) {
         const topic           = config.topic;
         const groupId         = config.groupId         || 'group1';
         const clientId        = config.clientId        || `node-red-client-${node.id}`;
-        const autoCommit      = config.autoCommit      || true;
+        const autoCommit      = config.autoCommit;
         
         const autoOffsetReset = config.autoOffsetReset || 'earliest';
         const autoCommitIntervalMs = config.autoCommitIntervalMs || 1000;
-        
+
         // check param valid
         function checkParamValid(uri, topic) {
             //
@@ -245,7 +245,7 @@ module.exports = function (RED) {
                         node.debug("consumer send rows:" + num);
 
                         // auto commit
-                        if (!autoCommit) {
+                        if (!autoCommit && num > 0) {
                             await consumer.commit();
                             node.debug("submit commit by manually.");
                         }                                            
