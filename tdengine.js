@@ -76,32 +76,23 @@ module.exports = function(RED) {
 
     // update db connect status,  status: {"start", "success", "failed"}
     function updateStatus(node, status) {
-        if (status == "start") {
-            // start
+        if (status == "connecting") {
+            // connecting
             node.connecting = true;
             node.connected  = false;
             node.emit("state", "connecting");
-        } else if (status == "success") {
-            // success
+        } else if (status == "connected") {
+            // connected
             node.connected  = true;
             node.connecting = false;
-            node.emit("state", "connected");
-            node.log("Connect tdengine successfully!");
-        } else if(status == "failed") {
-            // failed
+            node.log("Connect tdengine-db successfully!");
+        } else { 
+            // unconnected
             node.connected  = false;
             node.connecting = false;
-            node.log("Connect tdengine failed!");
-            node.emit("state", "unconnected");
-        } else if(status == "close") {
-            // close db
-            node.connected  = false;
-            node.connecting = false;
-            node.log("tdengine connection is closed!");
-            node.emit("state", "closed");            
-        } else {
-            node.error("unexpect status:" + status);
-        }
+            node.log("Connect tdengine-db failed!");
+        }   
+        node.emit("state", status);
     }
 
 
@@ -126,6 +117,7 @@ module.exports = function(RED) {
         async function doConnect() {
             // check 
             if (!checkParamValid(node)) {
+                updateStatus(node, "invalid param");
                 return false;
             }
 
@@ -133,42 +125,49 @@ module.exports = function(RED) {
             // connect db
             //
 
-            updateStatus(node, "start");
-            if (!node.conn) {
-                // prepare
-                var conf = null;
-                if (isHostType(node.connType)) {
-                    // host port
-                    let dsn = "ws://" + node.host + ":" + node.port;
-                    conf = new taos.WSConfig(dsn);
-                    conf.setUser(node.credentials.user);
-                    conf.setPwd(node.credentials.password);
-                    conf.setDb(node.db);
-                    node.log("connect with host:" + node.host + " port:" + node.port);
-                } else {
-                    // connect string
-                    conf = new taos.WSConfig(node.uri);
-                    node.log("connect with uri: " + node.uri);
-                }
+            updateStatus(node, "connecting");
 
-                // conn
-                try {
-                    node.debug("start call taos.sqlConnect...");
-                    node.conn = await taos.sqlConnect(conf);
-                    if (node.conn == null) {
-                        console.log("sqlConnect return null");
-                        throw new Error("connect db have null return .");
-                    }
-                    // success
-                    updateStatus(node, "success");
-                } catch (error) {
-                    // failed
-                    updateStatus(node, "failed");
-                    node.error(error);
+            // close pre
+            try {
+                if(node.conn) {
+                    node.log("close pre conn instance...");
+                    node.conn.close();
                 }
+            } catch (error) {
+                node.debug("pre conn instance close catch error, ignore." + error );
+            }
+
+            // prepare
+            var conf = null;
+            if (isHostType(node.connType)) {
+                // host port
+                let dsn = "ws://" + node.host + ":" + node.port;
+                conf = new taos.WSConfig(dsn);
+                conf.setUser(node.credentials.user);
+                conf.setPwd(node.credentials.password);
+                conf.setDb(node.db);
+                node.log("connect with host:" + node.host + " port:" + node.port);
             } else {
-                node.log("already is connected.");
-            };
+                // connect string
+                conf = new taos.WSConfig(node.uri);
+                node.log("connect with uri: " + node.uri);
+            }
+
+            // conn
+            try {
+                node.debug("start call taos.sqlConnect...");
+                node.conn = await taos.sqlConnect(conf);
+                if (node.conn == null) {
+                    console.log("sqlConnect return null");
+                    throw new Error("connect db have null return .");
+                }
+                // success
+                updateStatus(node, "connected");
+            } catch (error) {
+                // failed
+                updateStatus(node, "failed");
+                node.error(error);
+            }
         }
 
         /* 
@@ -240,7 +239,9 @@ module.exports = function(RED) {
                 node.debug("result obj:" + JSON.stringify(result, replacer));
                 return covResult(result);
             } catch (error) {
+                node.log("exec error:" + error);
                 node.error(error);
+                updateStatus(node, "failed");                
             }
         }
 
@@ -249,67 +250,75 @@ module.exports = function(RED) {
         // query
         //
         node.query = async function(sql) {
-            if (node.conn) {
-                try {
-                    var rows = [];
-                    let i = 0;
+            // check
+            if (node.conn == null) {
+                node.error("exec conn is null.");
+                return null;
+            }            
 
-                    node.log("query sql:" + sql);
-                    var wsRows = await node.conn.query(sql);
-                    node.debug(wsRows);
+            // query
+            try {
+                var rows = [];
+                let i = 0;
 
-                    var fields = [];
-                    var metas = await wsRows.getMeta();
-                    metas.forEach((meta, idx) => {
-                        fields.push(meta.name);
+                node.log("query sql:" + sql);
+                var wsRows = await node.conn.query(sql);
+                node.debug(wsRows);
+
+                var fields = [];
+                var metas = await wsRows.getMeta();
+                metas.forEach((meta, idx) => {
+                    fields.push(meta.name);
+                });
+
+                node.debug("get fields:" + JSON.stringify(fields, replacer));
+
+                while ( await wsRows.next()) {
+                    let row = await wsRows.getData();
+
+                    let obj = {};
+                    fields.forEach((field, index) => {
+                        obj[field] = row[index];
                     });
-
-                    node.debug("get fields:" + JSON.stringify(fields, replacer));
-
-
-                    while ( await wsRows.next()) {
-                        let row = await wsRows.getData();
-
-                        let obj = {};
-                        fields.forEach((field, index) => {
-                            obj[field] = row[index];
-                        });
-                        rows.push(obj);
-                        
-                        console.log("i=",i, " obj:", JSON.stringify(obj, replacer));
-                        i += 1;
-                    }
-
-                    // succ
-                    node.log("query successfully. rows count=" + i);
-                    return rows;
-
-                } catch (error) {
-                    node.log("query error:" + error);
-                    node.error(error);
+                    rows.push(obj);
                     
-                    // maybe reconnect
-
+                    console.log("i=",i, " obj:", JSON.stringify(obj, replacer));
+                    i += 1;
                 }
-            } else {
-                node.error("query conn is null.");
-            }
 
-            return null;
+                // succ
+                node.log("query successfully. rows count=" + i);
+                return rows;
+
+            } catch (error) {
+                node.log("query error:" + error);
+                node.error(error);
+                updateStatus(node, "failed");
+                // maybe reconnect
+                return null;
+            }
+            
         }
 
         //
         // connect
         //
         node.connect = function() {
-            if (!node.connected && !node.connecting) {
-                try {
-                    doConnect();
-                } catch {
-                    node.log("catch doConnect except.");
-                }
-            } else {
-                node.log("conn is already connected.");
+            // check status
+            if(node.connected) {
+                node.debug("conn is already connected.");
+                return ;
+            } else if(node.connecting) {
+                node.log("conn is already connecting...");
+                return ;
+            }
+
+            // do connect
+            try {
+                doConnect();
+            } catch (error) {
+                node.log("catch doConnect except.");
+                node.error(error);
             }
         }
 
@@ -394,12 +403,8 @@ module.exports = function(RED) {
                 try {
                     send = send || function() { node.send.apply(node, arguments) };
 
-                    // try if unconnected
-                    if(!node.dbEngine.connected) {
-                        node.log("db is unconnected and try to connect....");
-                        node.dbEngine.connect();
-                        node.log("reconnect is finished.");
-                    }
+                    // connect if no connected
+                    node.dbEngine.connect();
 
                     // execute sql
                     if (node.dbEngine.connected) {

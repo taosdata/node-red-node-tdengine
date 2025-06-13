@@ -285,8 +285,8 @@ module.exports = function (RED) {
                     node.log(`Attempting to reconnect(id=${reconnectIntervalId}) to TDengine...`);
                     try {
                         // destroy
-                        node.debug("call taos.destroy()");
-                        taos.destroy()
+                        node.debug("no call taos.destroy()");
+                        //taos.destroy()
                         // re-create
                         createConsumerInstance();
                     } catch(error) {
