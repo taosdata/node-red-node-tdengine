@@ -41,7 +41,7 @@
     <p></p>
     <div class="form-row">
         <label for="node-input-autoCommit"><i class="fa fa-paper-plane"></i><span data-i18n="tdengine.label.autocommit"></span></label>
-        <input type="checkbox" id="node-input-autoCommit" style="width:auto;">
+        <input type="checkbox" id="node-input-autoCommit" style="width:auto;" data-bind="checked: autoCommit">
     </div>
     <div class="form-row" id="auto-commit-interval-row">
         <label for="node-input-autoCommitIntervalMs"><i class="fa fa-clock-o"></i><span data-i18n="tdengine.label.commitinterval"></span></label>
@@ -77,6 +77,22 @@
         },
         labelStyle: function () {
             return this.name ? 'node_label_italic' : '';
-        }
+        },
+        oneditprepare: function() {
+            // Initial state
+            toggleAutoCommitIntervalRow(this.autoCommit);
+            // Bind change event
+            $("#node-input-autoCommit").change(function() {
+                toggleAutoCommitIntervalRow($(this).is(':checked'));
+            });
+        } 
     });
+
+    function toggleAutoCommitIntervalRow(show) {
+        if (show) {
+            $('#auto-commit-interval-row').show();
+        } else {
+            $('#auto-commit-interval-row').hide();
+        }
+    }
 </script>

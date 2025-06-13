@@ -79,7 +79,7 @@ module.exports = function (RED) {
         // tmq work ok notify
         function notifyWorkOK() {
             node.log("Connect and subscribe OK!");
-            updateStatus("success");
+            updateStatus("connected");
             clearInterval(reconnectIntervalId); // Clear any existing reconnect interval
             reconnectIntervalId = 0;
         }
@@ -102,8 +102,12 @@ module.exports = function (RED) {
 
             // atri log
             configMap.forEach((v, k) => {
-                if (k == taos.TMQConstants.CONNECT_PASS) {
-                    node.debug("attr " + k + ": " + v.substring(0,2) + "****");
+                if ( k == taos.TMQConstants.CONNECT_PASS) {
+                    if (v) {
+                        node.debug("attr " + k + ": " + v.substring(0,2) + "****");
+                    } else {
+                        node.debug("attr " + k + ": null");
+                    }
                 } else {
                     node.debug("attr " + k + ": " + v);
                 }
@@ -298,38 +302,23 @@ module.exports = function (RED) {
         // update node status
         //
         function updateStatus(status) {
-            if (status == "start") {
-                // start
+            if (status == "connecting") {
+                // connecting
                 node.connecting = true;
                 node.connected  = false;
-                node.emit("state", "starting");
-            } else if (status == "invalid param") {
-                // uninit
-                node.connected  = false;
-                node.connecting = false;
-                node.emit("state", "invalid param");
-                node.log("node status is uninit!");
-            } else if (status == "success") {
-                // success
+                node.emit("state", "connecting");
+            } else if (status == "connected") {
+                // connected
                 node.connected  = true;
                 node.connecting = false;
-                node.emit("state", "connected");
                 node.log("Connect tdengine-consumer successfully!");
-            } else if(status == "failed") {
-                // failed
+            } else { 
+                // unconnected
                 node.connected  = false;
                 node.connecting = false;
                 node.log("Connect tdengine-consumer failed!");
-                node.emit("state", "unconnected");
-            } else if(status == "close") {
-                // close db
-                node.connected  = false;
-                node.connecting = false;
-                node.log("tdengine-consumer is closed!");
-                node.emit("state", "closed");            
-            } else {
-                node.error("unexpect status:" + status);
-            }
+            }   
+            node.emit("state", status);
         }        
 
         this.on('input', async (msg, send, done) => {
@@ -342,10 +331,7 @@ module.exports = function (RED) {
 
         // state
         node.on("state", function(info) {
-            node.log("on state:" + info);
-            if (info == "invalid param") {
-                node.status({fill: "red", shape: "ring", text: info});
-            } else if (info === "connecting") {
+            if (info === "connecting") {
                 node.status({fill: "grey", shape: "ring", text: info});
             } else if (info === "connected") {
                 node.status({fill: "green", shape: "dot", text: info});
@@ -381,7 +367,7 @@ module.exports = function (RED) {
         //
 
         // start
-        updateStatus("start");
+        updateStatus("connecting");
 
         // Initial connection attempt
         try {

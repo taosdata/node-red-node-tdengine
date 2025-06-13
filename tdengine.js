@@ -360,6 +360,8 @@ module.exports = function(RED) {
             // check
             node.debug("pre sql:" + pre);
             if (pre.startsWith("select ") || 
+                pre.startsWith("desc")    ||
+                pre.startsWith("explain ")    ||
                 pre.startsWith("show ")) {
                 return 'query';
             } else {
@@ -430,6 +432,7 @@ module.exports = function(RED) {
                         };
                     }
                 } catch(error) {
+                    log.error("tdengine input catch error", error);
                     node.error(error);
                 } finally {
                     // input msg deal finished
