@@ -21,7 +21,7 @@
         "errors": {
             "notstring": "the query is not defined as a string",
             "notconnected": "Database not connected",
-            "notconfigured": "MySQL database not configured"
+            "notconfigured": "TDengine database not configured"
         },
         "tip": "Tip: "
     }
