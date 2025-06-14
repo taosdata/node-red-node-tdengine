@@ -11,25 +11,22 @@
     </ul>
 
     <h3>节点状态</h3>
-    <div class="node-status-list">
-        <p><i class="fa fa-circle status-dot status-connecting"></i> 连接中 (灰色)</p>
-        <p><i class="fa fa-circle status-dot status-connected"></i> 工作正常 (绿色)</p>
-        <p><i class="fa fa-circle status-dot status-error"></i> 工作异常 (红色)</p>
-    </div>
-
+    <ul>
+        <li>连接中 (灰色)</li>
+        <li>工作正常 (绿色)</li>
+        <li>工作异常 (红色)</li>
+    </ul>
     
-
-    
-    <p><b>配置说明：</b></p>
+    <h3>配置说明：</h3>
     <ul>
         <li><b>名称：</b> 流程编辑器中该节点的可选名称。</li>        
         <li><b>订阅服务器：</b> 订阅服务器的 WebSocket 地址 ，格式 “ws://username:password>@host:port”, 云服务参考云服务网站提供的 WebSocket 连接串格式</li>
         <li><b>用户名：</b> 连接订阅服务器用户名，连接云服务授权包含在 TOKEN 中，此处无需填写</li>
         <li><b>密码：</b> 连接订阅服务器密码，连接云服务授权包含在 TOKEN 中，此处无需填写</li>
-        <li><b>主题：</b> 要订阅的 TDengine 主题，多个主题之间使用逗号分隔</li>
+        <li><b>订阅主题组：</b> 要订阅的 TDengine 主题，多个主题之间使用逗号分隔</li>
         <li><b>消费组 ID：</b> 消费者组 ID，默认值为 <code>group1</code>。</li>
         <li><b>客户端 ID：</b> 此消费者的客户端 ID，默认值为唯一标识符。</li>
-        <li><b>消费消息的开始位置：</b>
+        <li><b>消费开始位置：</b>
             <ul>
                 <li><code>earliest</code>：将偏移量重置为最早的偏移量。</li>
                 <li><code>latest</code>：将偏移量重置为最新的偏移量。</li>
@@ -38,23 +35,25 @@
         <li><b>Poll 超时时间：</b> 每次提交等待消费数据达到的等待时间 <code>5000</code>。</li>
         <li><b>自动提交：</b> 是否自动提交保存消费进度，默认值为 <code>true</code>。</li>
         <li><b>提交间隔（毫秒）：</b> 自动提交间隔（毫秒），默认值为 <code>1000</code>。</li>
-    </ul>    
+    </ul>
 
     <h3>输入格式</h3>
-    <pre><code class="javascript">
-        msg = {
-          topic: "SQL语句",      // 必需字段
-          payload: { ... }       // 可选附加参数
-        }
-    </code></pre>
-    <p>SQL 特殊字符与转义符需遵循 JSON 字符串规范</p>
+    <pre>
+      <code class="javascript">
+msg = {
+  topic: "订阅主题", // 必需字段
+  payload: { ... }  // 未使用
+}
+    </code>
+    </pre>    
 
     <h3>输出格式</h3>
-    <p>接收到的消息将作为 Node-RED 消息输出，其 payload 为对象数组。</p>
-
-
-
-    <p>数据类型映射参考：
+    <p>topic: 订阅主题</p>
+    <p>database: 数据库名</p>
+    <p>vgroup_id: 数据所在分区</p>
+    <p>precision: 数据库精度</p>
+    <p> payload 输出对象数组，对象属性名与查询返回字段名一致，对象属性数据类型与数据库字段类型映射关系参考：</p>
+    <p>
         <a href="https://docs.taosdata.com/reference/connector/node/" target="_blank">
             TDengine NodeJS 连接器类型映射表
         </a>
@@ -70,10 +69,12 @@
 
     <h3>日志配置</h3>
     日志级别，遵循 node-red 日志级别开启不同 Level 上日志
-    <pre><code class="json">// settings.js
-        logging: {
-        level: "info"  // 支持: fatal, error, warn, info, debug, trace, off
-    }</code></pre>
+    <pre><code class="json">
+ // settings.js
+ logging: {
+    level: "info" // 支持: fatal, error, warn, info, debug, trace, off
+ }
+    </code></pre>
     <ul>
         <li>日志格式: [时间] [节点名] 首字母大写的英文描述</li>
         <li>支持级别: error, warn, info, debug</li>
@@ -81,13 +82,23 @@
 
     <h3>使用示例</h3>
     <div class="node-help-examples">
-        <p><b>写入数据：</b></p>
-        <pre><code class="javascript">msg.topic = "INSERT INTO meters 
-               VALUES (NOW, 10.2, 219, 0.32)";</code></pre>
-
-        <p><b>查询数据：</b></p>
-        <pre><code class="javascript">msg.topic = "SELECT * FROM meters 
-               WHERE voltage > 220";</code></pre>
+        <p><b>订阅 topic1 输出对象：</b></p>
+        <pre>
+<code class="json">
+{
+  topic: 'topic1',
+  payload: [{ 
+    ts: 1749281716809,
+    current: 1,
+    voltage: 2, 
+    phase:   4 
+  } ],
+  database: 'test',
+  vgroup_id: 4,
+  precision: 0
+}
+</code>
+        </pre>
     </div>
 
 </script>
