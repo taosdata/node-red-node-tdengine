@@ -19,7 +19,7 @@
 
     <h3>功能特性</h3>
     <ul>
-        <li>支持本地部署及云服务 TDengine 数据源。</li>
+        <li>支持 TDengine 本地部署或云服务数据源。</li>
         <li>支持 TDengine 所有 SQL 操作（SELECT/INSERT/CREATE/ALTER/SHOW 等）。</li>
         <li>统一接口处理读写操作（<code>msg.topic</code> 传递 SQL 语句）。</li>
     </ul>
@@ -43,7 +43,7 @@ msg = {
     <h3>输出格式</h3>
     自动识别查询类（SELECT/SHOW/DESC/EXPLAIN）与写入类操作，输出不同格式内容。
     <h4>写入类</h4>
-    payload 存放写入结果，topic 透传写入 SQL，输出格式：
+    <code>payload</code> 存放写入结果，topic 透传写入 SQL，输出格式：
 
 <pre><code class="javascript">msg = {
  topic: "insert into ...",
@@ -56,7 +56,7 @@ msg = {
 </code></pre>
 
     <h4>查询类</h4>
-    <p> payload 存放查询结果，topic 透传查询 SQL，输出格式：</p>
+    <p> <code>payload</code> 存放查询结果，topic 透传查询 SQL，输出格式：</p>
 <pre><code class="javascript">{
 topic: "select * from ...",
 payload: [
