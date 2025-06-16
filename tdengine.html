@@ -1,5 +1,5 @@
 
-<script type="text/html" data-template-name="DBEngine">
+<script type="text/html" data-template-name="TDengineServer">
 
     <div class="form-row">
         <label for="node-config-input-name"><i class="fa fa-tag"></i> <span data-i18n="node-red:common.label.name"></span></label>
@@ -56,7 +56,7 @@
 </script>
 
 <script type="text/javascript">
-    RED.nodes.registerType('DBEngine',{
+    RED.nodes.registerType('TDengineServer',{
         category: 'config',
         defaults: {
             name:     {value: "" },
@@ -122,12 +122,12 @@
         category: 'storage-input',
         color: '#a6bb00',
         defaults: {
-            db:   {type:"DBEngine", required:true},
+            db:   {type:"TDengineServer", required:true},
             name: {value:""}
         },
         inputs:1,
         outputs:1,
-        icon: "db.png",
+        icon: "tdengine.png",
         label: function() {
             var levelNode = RED.nodes.node(this.db);
             return this.name||(levelNode ? levelNode.label(): "tdengine");

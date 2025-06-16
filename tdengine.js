@@ -21,7 +21,7 @@ module.exports = function(RED) {
     //taos.setLevel("debug");
 
     //
-    // ------------------------------  DBEngine util ----------------------------------
+    // ------------------------------  TDengineServer util ----------------------------------
     //
 
     // init
@@ -97,16 +97,16 @@ module.exports = function(RED) {
 
 
     //
-    // ------------------------------  DBEngine ----------------------------------
+    // ------------------------------  TDengineServer ----------------------------------
     //
 
 
-    function DBEngine(config) {
+    function TDengineServer(config) {
         var node = this;
         
         // create node
         RED.nodes.createNode(node, config);
-        node.log("create node DBEngine.");
+        node.log("create node TDengineServer.");
 
         // init db
         dbInit(node, config);
@@ -325,22 +325,27 @@ module.exports = function(RED) {
         // close trigger
         node.on('close', function(done) {
             // close db
-            if (node.connected) {
-                if (node.conn) {
-                    node.debug("on close conn.close().");
-                    node.conn.close();
-                }      
+            try {
+                if (node.connected) {
+                    if (node.conn) {
+                        node.debug("on close conn.close().");
+                        node.conn.close();
+                    }      
+                }
+                
+                node.debug("on close taos.destroy().");
+                taos.destroy();
+                updateStatus(node, "close");
+            } catch (error) {
+                node.error(error);
             }
             
-            node.debug("on close taos.destroy().");
-            taos.destroy();
-            updateStatus(node, "close");
             done();
         });
     }
 
     // register
-    RED.nodes.registerType("DBEngine", DBEngine, {
+    RED.nodes.registerType("TDengineServer", TDengineServer, {
         credentials: {
             user: {type: "text"},
             password: {type: "password"}
@@ -379,7 +384,7 @@ module.exports = function(RED) {
         }
 
         if (node.dbEngine) {
-            node.log("call DBEngine.connect() ...");
+            node.log("call TDengineServer.connect() ...");
             this.dbEngine.connect();
             var node = this;
             var status = {};
@@ -416,11 +421,13 @@ module.exports = function(RED) {
                                 // select show
                                 let rows = await node.dbEngine.query(sql);
                                 msg.payload = rows;
+                                msg.isQuery = true;
                                 send(msg);
                             } else {
                                 // insert delete alter
                                 let result = await node.dbEngine.exec(operate, sql, msg.payload);
                                 msg.payload = result;
+                                msg.isQuery = false;
                                 send(msg);
                             }
                         } else {

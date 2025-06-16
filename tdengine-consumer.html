@@ -60,7 +60,7 @@
             topic:       { value: '', required: true },
             groupId:     { value: 'group1' },
             clientId:    { value: '' },
-            autoCommitIntervalMs: { value: 1000 },
+            autoCommitIntervalMs: { value: 5000 },
             autoOffsetReset:      { value: 'earliest' },
             autoCommit:           { value: true }
         },
@@ -70,7 +70,7 @@
         },        
         inputs: 0,
         outputs: 1,
-        icon: 'database.png', // You can choose a relevant icon
+        icon: "tdengine.png",
         label: function () {
             return this.name || 'TDengine Consumer';
         },

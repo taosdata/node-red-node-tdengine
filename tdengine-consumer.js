@@ -41,7 +41,7 @@ module.exports = function (RED) {
         const autoCommit      = config.autoCommit;
         
         const autoOffsetReset = config.autoOffsetReset || 'earliest';
-        const autoCommitIntervalMs = config.autoCommitIntervalMs || 1000;
+        const autoCommitIntervalMs = config.autoCommitIntervalMs || 5000;
 
         // check param valid
         function checkParamValid(uri, topic) {

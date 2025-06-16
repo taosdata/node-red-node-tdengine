@@ -24,7 +24,8 @@
         "version": ">=3.0.0",
         "nodes": {
             "tdengine": "tdengine.js",
-            "tdengine-consumer": "tdengine-consumer.js"
+            "tdengine-consumer": "tdengine-consumer.js",
+            "icon": "tdengine.png"
         }
     },
     "dependencies": {
