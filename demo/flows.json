@@ -18,11 +18,31 @@
         "db": "test"
     },
     {
+        "id": "e2370922a8a5e70e",
+        "type": "TDengineServer",
+        "name": "td124",
+        "uri": "ws://root:taosdata@192.168.2.124:6041",
+        "connType": "connection-string",
+        "host": "127.0.0.1",
+        "port": "6041",
+        "db": ""
+    },
+    {
+        "id": "e1107861c2072c87",
+        "type": "TDengineServer",
+        "name": "",
+        "uri": "ws://root:taosdata@localhost:6041",
+        "connType": "connection-string",
+        "host": "127.0.0.1",
+        "port": "6041",
+        "db": ""
+    },
+    {
         "id": "113ce50070717687",
         "type": "tdengine",
         "z": "8ada4cf724af8319",
-        "db": "55d3175344196423",
-        "name": "td-writor",
+        "db": "e2370922a8a5e70e",
+        "name": "td-writer",
         "x": 500,
         "y": 160,
         "wires": [
@@ -45,7 +65,7 @@
                 "vt": "str"
             }
         ],
-        "repeat": "1",
+        "repeat": "30",
         "crontab": "",
         "once": false,
         "onceDelay": "1",
@@ -69,7 +89,7 @@
         "outputs": 1,
         "timeout": "",
         "noerr": 0,
-        "initialize": "",
+        "initialize": "// 部署节点后，此处添加的代码将运行一次。 \n\"create database if not exists test;\"",
         "finalize": "",
         "libs": [],
         "x": 320,
@@ -81,57 +101,19 @@
         ]
     },
     {
-        "id": "3bbe13f798d70840",
-        "type": "tdengine-consumer",
-        "z": "8ada4cf724af8319",
-        "name": "td-consumer",
-        "uri": "ws://192.168.0.26:6041",
-        "pollTimeout": "4000",
-        "topic": "topic1,topic3",
-        "groupId": "dkjgroup2",
-        "clientId": "dkjclient",
-        "autoCommitIntervalMs": "2004",
-        "autoOffsetReset": "earliest",
-        "autoCommit": false,
-        "x": 130,
-        "y": 520,
-        "wires": [
-            [
-                "c483f66846032526"
-            ]
-        ]
-    },
-    {
-        "id": "c483f66846032526",
-        "type": "debug",
-        "z": "8ada4cf724af8319",
-        "name": "debug-consumer",
-        "active": true,
-        "tosidebar": true,
-        "console": true,
-        "tostatus": true,
-        "complete": "payload",
-        "targetType": "msg",
-        "statusVal": "payload",
-        "statusType": "auto",
-        "x": 410,
-        "y": 520,
-        "wires": []
-    },
-    {
         "id": "0dcdb6f664673f8a",
         "type": "debug",
         "z": "8ada4cf724af8319",
         "name": "debug 1",
         "active": true,
-        "tosidebar": true,
-        "console": true,
+        "tosidebar": false,
+        "console": false,
         "tostatus": true,
         "complete": "payload",
         "targetType": "msg",
         "statusVal": "",
-        "statusType": "msg",
-        "x": 690,
+        "statusType": "counter",
+        "x": 680,
         "y": 160,
         "wires": []
     },
@@ -139,9 +121,9 @@
         "id": "6fed2c22511e9577",
         "type": "tdengine",
         "z": "8ada4cf724af8319",
-        "db": "55d3175344196423",
+        "db": "e2370922a8a5e70e",
         "name": "td-reader",
-        "x": 340,
+        "x": 320,
         "y": 380,
         "wires": [
             [
@@ -153,7 +135,7 @@
         "id": "56483f8eed924f4f",
         "type": "inject",
         "z": "8ada4cf724af8319",
-        "name": "",
+        "name": "query",
         "props": [
             {
                 "p": "topic",
@@ -164,7 +146,7 @@
         "crontab": "",
         "once": false,
         "onceDelay": 0.1,
-        "topic": "select tbname, avg(current),avg(voltage),sum(p) from ( select tbname,current,voltage,current*voltage/60 as p from meters  where  ts > now-60s partition by tbname) group by tbname;",
+        "topic": "select tbname, avg(current),avg(voltage),sum(p) from ( select tbname,current,voltage,current*voltage/60 as p from test.meters  where  ts > now-60s partition by tbname) group by tbname;",
         "x": 130,
         "y": 380,
         "wires": [
@@ -186,7 +168,7 @@
         "targetType": "msg",
         "statusVal": "",
         "statusType": "counter",
-        "x": 550,
+        "x": 510,
         "y": 380,
         "wires": []
     },
@@ -197,8 +179,8 @@
         "name": "",
         "scope": null,
         "uncaught": false,
-        "x": 930,
-        "y": 520,
+        "x": 140,
+        "y": 660,
         "wires": [
             [
                 "17137e7c7ba7b1da"
@@ -218,8 +200,8 @@
         "targetType": "msg",
         "statusVal": "",
         "statusType": "counter",
-        "x": 1120,
-        "y": 520,
+        "x": 340,
+        "y": 660,
         "wires": []
     },
     {
@@ -319,5 +301,43 @@
                 "113ce50070717687"
             ]
         ]
+    },
+    {
+        "id": "3bbe13f798d70840",
+        "type": "tdengine-consumer",
+        "z": "8ada4cf724af8319",
+        "name": "td-consumer",
+        "uri": "wss://gw.cloud.taosdata.com?token=0df909712bb345d6ba92253d3e6fb635d609c8ff",
+        "pollTimeout": "20000",
+        "topic": "topic_cloud",
+        "groupId": "dkjgroup2",
+        "clientId": "dkjclient",
+        "autoCommitIntervalMs": "2004",
+        "autoOffsetReset": "earliest",
+        "autoCommit": false,
+        "x": 130,
+        "y": 520,
+        "wires": [
+            [
+                "c4755939b74bae0f"
+            ]
+        ]
+    },
+    {
+        "id": "c4755939b74bae0f",
+        "type": "debug",
+        "z": "8ada4cf724af8319",
+        "name": "debug 3",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": true,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "counter",
+        "x": 320,
+        "y": 520,
+        "wires": []
     }
 ]
