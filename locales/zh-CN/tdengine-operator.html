@@ -2,8 +2,18 @@
      <p><b>数据库连接设置</b></p>
      <ul>
         <li>连接 TDengine 数据库使用 WEBSOCKET 协议。</li>
-        <li>字符串连接格式：<code>wss://user:password@host:port</code>。</li>
-        <li>连接 TDengine 云服务需使用“连接字符串”类型。</li>
+            <p>本地部署连接串格式：<code>ws://user:password@host:port</code>。</p>
+            <ul>
+              <li>host：TDengine 服务器名或 IP。</li>
+              <li>port：端口号，默认 <code>6041</code>。</li> 
+              <li>user：用户名，默认 <code>root</code>。</li> 
+              <li>password：密码，默认 <code>taosdata</code>。</li> 
+            </ul>  
+            <p>云服务连接串格式：<code>wss://gw.cloud.taosdata.com?token=0df909...</code><p>
+            <ul>
+              <li>host：gw.cloud.taosdata.com</li>
+              <li>token：请登录 <a href="https://cloud.taosdata.com/">云服务网站</a> 获取。</li> 
+            </ul>
         <li>连接密码不明文暴露可选择“主机/端口”类型。</li>
         <li>连接各属性详细参考： 
             <a href="https://docs.taosdata.com/reference/connector/node/#url-%E8%A7%84%E8%8C%83" target="_blank">
@@ -13,7 +23,7 @@
      </ul>
 </script>
 
-<script type="text/html" data-help-name="tdengine">
+<script type="text/html" data-help-name="tdengine-operator">
     <p><b>TDengine 数据库操作节点</b></p>
     <p>此节点提供 SQL 执行接口，支持 TDengine 数据写入/查询操作。</p>
 

@@ -1,5 +1,5 @@
 {
-    "tdengine": {
+    "tdengine-operator": {
         "label": {
             "conntype":"连接类型",
             "connstring":"连接字符串",

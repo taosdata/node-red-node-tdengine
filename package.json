@@ -11,6 +11,7 @@
     "keywords": [
         "node-red",
         "tdengine",
+        "tdengine-operator",
         "tdengine-consumer",
         "taos",
         "td",
@@ -23,7 +24,7 @@
     "node-red": {
         "version": ">=3.0.0",
         "nodes": {
-            "tdengine": "tdengine.js",
+            "tdengine-operator": "tdengine-operator.js",
             "tdengine-consumer": "tdengine-consumer.js",
             "icon": "tdengine.png"
         }
