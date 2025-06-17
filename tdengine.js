@@ -360,7 +360,7 @@ module.exports = function(RED) {
         node = this;
         RED.nodes.createNode(this, n);
         node.log("TDengine DBNodeIn created.");
-        node.dbEngine = RED.nodes.getNode(n.db);
+        node.tdServer = RED.nodes.getNode(n.db);
         node.status({});
 
         // sql type
@@ -383,14 +383,14 @@ module.exports = function(RED) {
             }
         }
 
-        if (node.dbEngine) {
+        if (node.tdServer) {
             node.log("call TDengineServer.connect() ...");
-            this.dbEngine.connect();
+            this.tdServer.connect();
             var node = this;
             var status = {};
 
             // state
-            node.dbEngine.on("state", function(info) {
+            node.tdServer.on("state", function(info) {
                 node.log("on state:" + info);
                 if (info === "connecting") {
                     node.status({fill: "grey", shape: "ring", text: info});
@@ -409,23 +409,23 @@ module.exports = function(RED) {
                     send = send || function() { node.send.apply(node, arguments) };
 
                     // connect if no connected
-                    node.dbEngine.connect();
+                    node.tdServer.connect();
 
                     // execute sql
-                    if (node.dbEngine.connected) {
+                    if (node.tdServer.connected) {
                         if (typeof msg.topic === 'string') {
                             var sql = msg.topic;
                             var operate = sqlType(sql);
                             node.log("operate:" + operate);
                             if (operate == "query") {
                                 // select show
-                                let rows = await node.dbEngine.query(sql);
+                                let rows = await node.tdServer.query(sql);
                                 msg.payload = rows;
                                 msg.isQuery = true;
                                 send(msg);
                             } else {
                                 // insert delete alter
-                                let result = await node.dbEngine.exec(operate, sql, msg.payload);
+                                let result = await node.tdServer.exec(operate, sql, msg.payload);
                                 msg.payload = result;
                                 msg.isQuery = false;
                                 send(msg);

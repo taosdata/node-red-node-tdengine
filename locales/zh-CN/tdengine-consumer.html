@@ -21,13 +21,20 @@
     <h3>配置说明：</h3>
     <ul>
         <li><b>名称：</b> 流程编辑器中该节点的可选名称。</li>        
-        <li><b>订阅服务器：</b> 订阅服务器的 WebSocket 地址 ，格式 <code>ws://host:port</code>，<code>host</code> 为 TDengine 服务器名或 IP 地址，
-<code>port</code> 为端口号，默认值为 <code>6041</code>。
-云服务连接串格式：<code>wss://gw.cloud.taosdata.com?token=0df909...</code>，
-token 参数请登录<a href="https://cloud.taosdata.com/">云服务网站</a>获取。</li>
-        <li><b>用户名：</b> 连接订阅服务器用户名，连接云服务授权包含在 TOKEN 中，此处无需填写。</li>
-        <li><b>密码：</b> 连接订阅服务器密码，连接云服务授权包含在 TOKEN 中，此处无需填写。</li>
-        <li><b>订阅主题组：</b> 要订阅的 TDengine 主题，多个主题之间使用“逗号”分隔。</li>
+        <li><b>订阅服务器：</b> 订阅服务器的 WebSocket 地址 ，格式 <code>ws://host:port</code>。
+            <ul>
+              <li>host：TDengine 服务器名或 IP。</li>
+              <li>port：端口号，默认 <code>6041</code>。</li> 
+            </ul>  
+            <p>云服务连接串格式：<code>wss://gw.cloud.taosdata.com?token=0df909...</code><p>
+            <ul>
+              <li>host：gw.cloud.taosdata.com</li>
+              <li>token：请登录 <a href="https://cloud.taosdata.com/">云服务网站</a> 获取。</li> 
+            </ul> 
+        </li>
+        <li><b>用户名：</b> 连接订阅服务器用户名（注：云服务授权含在 TOKEN 中，无需填写）。</li>
+        <li><b>密码：</b> 连接订阅服务器密码（注：云服务授权含在 TOKEN 中，无需填写）。</li>
+        <li><b>订阅主题组：</b> 订阅 topic 名称，多个 topic 使用逗号分隔。</li>
         <li><b>消费组 ID：</b> 消费者组 ID，默认值为 <code>group1</code>。</li>
         <li><b>客户端 ID：</b> 此消费者的客户端 ID，默认值为唯一标识符。</li>
         <li><b>消费开始位置：</b>
@@ -42,10 +49,10 @@ token 参数请登录<a href="https://cloud.taosdata.com/">云服务网站</a>�
     </ul>
 
     <h3>输入格式</h3>
-    <code>起始节点，无输入</code>
+    <p>起始节点，无输入。</p>
 
     <h3>输出格式</h3>
-    <p> payload 输出对象数组，对象属性名与查询返回字段名一致，对象属性数据类型与数据库字段类型映射关系参考：</p>
+    <p> payload 输出对象数组，对象属性名与查询返回列名一致，属性类型与数据库类型映射关系参考：</p>
     <p>
         <a href="https://docs.taosdata.com/reference/connector/node/#%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E6%98%A0%E5%B0%84" target="_blank">
             TDengine NodeJS 连接器类型映射表
