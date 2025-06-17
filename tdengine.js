@@ -158,7 +158,6 @@ module.exports = function(RED) {
                 node.debug("start call taos.sqlConnect...");
                 node.conn = await taos.sqlConnect(conf);
                 if (node.conn == null) {
-                    console.log("sqlConnect return null");
                     throw new Error("connect db have null return .");
                 }
                 // success
@@ -282,7 +281,7 @@ module.exports = function(RED) {
                     });
                     rows.push(obj);
                     
-                    console.log("i=",i, " obj:", JSON.stringify(obj, replacer));
+                    node.debug("i=" + i  + " obj:" + JSON.stringify(obj, replacer));
                     i += 1;
                 }
 
@@ -421,15 +420,16 @@ module.exports = function(RED) {
                                 // select show
                                 let rows = await node.tdServer.query(sql);
                                 msg.payload = rows;
-                                msg.isQuery = true;
+                                msg.query = true;
                                 send(msg);
                             } else {
                                 // insert delete alter
                                 let result = await node.tdServer.exec(operate, sql, msg.payload);
                                 msg.payload = result;
-                                msg.isQuery = false;
+                                msg.query = false;
                                 send(msg);
                             }
+                            node.debug("send msg:" + JSON.stringify(msg, replacer));
                         } else {
                             if (typeof msg.topic !== 'string') {
                                 node.error("msg.topic : " + RED._("tdengine.errors.notstring")); 
