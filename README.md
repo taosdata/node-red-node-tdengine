@@ -27,9 +27,15 @@ Prepare the following environment:
 The calling relationship of the above installation components is shown in the following figure:
  ![td-frame](img/td-frame.webp)
 
+## Configure Data Source
+  TDengine WebSocket connection string format:
+   - tdengine-operator: `ws://user:password@host:port`
+   - tdengine-consumer: `ws://host:port`
+
+  see detail click [here](https://docs.tdengine.com/tdengine-reference/client-libraries/node/#url-specification)
 
  ## Installation
-
+Run the following command in your Node-RED user directory - typically ~/.node-red .
  ``` bash
    npm i node-red-node-tdengine
  ```
@@ -53,7 +59,7 @@ return msg;
     {
     "topic":  "insert into test.d1 values (now, 20, 203, 2);",
     "_msgid": "8f50fe84338387d7",
-    "query":  false,
+    "isQuery":  false,
     "payload":{
         "affectRows": 1,
         "totalTime":  2,
@@ -67,7 +73,7 @@ return msg;
     {
     "topic":  "select tbname,avg(current) ...",
     "_msgid": "0d19e9b82ae3841a",
-    "query":  true,
+    "isQuery":  true,
     "payload": [
         {
         "tbname":      "d2",
@@ -114,9 +120,9 @@ return msg;
 
 ## Documents
 
-Full documentation available in Node-RED's in-editor help system (click the book icon).
+- Full documentation available in Node-RED's in-editor help system (click the book icon).
+- [Introduce usage scenarios with Node-RED Plugin for TDengine](https://docs.tdengine.com/third-party/collection/NODE-RED/)
 
 ## Resources
 - [TDengine Official Website](http://www.tdengine.com)
 - [Node.js Connector for TDengine](https://docs.tdengine.com/tdengine-reference/client-libraries/node/)
-- [Node-RED Plugin for TDengine](https://docs.tdengine.com/third-party/collection/NODE-RED/)

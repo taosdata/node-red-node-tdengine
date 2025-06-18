@@ -420,13 +420,13 @@ module.exports = function(RED) {
                                 // select show
                                 let rows = await node.tdServer.query(sql);
                                 msg.payload = rows;
-                                msg.query = true;
+                                msg.isQuery = true;
                                 send(msg);
                             } else {
                                 // insert delete alter
                                 let result = await node.tdServer.exec(operate, sql, msg.payload);
                                 msg.payload = result;
-                                msg.query = false;
+                                msg.isQuery = false;
                                 send(msg);
                             }
                             node.debug("send msg:" + JSON.stringify(msg, replacer));

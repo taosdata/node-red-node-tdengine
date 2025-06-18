@@ -45,7 +45,7 @@
     <p>topic 传递 SQL 语句：</p>
 <code class="javascript">
 msg = {
-  topic: "SQL语句"
+  topic: "SQL 语句"
 }
 </code>
     <p>SQL 特殊字符与转义符需遵循 JSON 字符串规范。</p>
@@ -57,9 +57,10 @@ msg = {
 
 <pre><code class="javascript">msg = {
  topic: "insert into ...",
+ isQuery: false, // 查询类为 true, 否则 false
  payload: {
-   affectRows: 2, // 影响行数
-   totalTime: 3,  // 写入总耗时（毫秒）
+   affectRows: 2,  // 影响行数
+   totalTime: 3,   // 写入总耗时（毫秒）
    timing: 1683311 // 写入在服务器上执行时间（纳秒）
  }
 }
@@ -69,6 +70,7 @@ msg = {
     <p> <code>payload</code> 存放查询结果，topic 透传查询 SQL，输出格式：</p>
 <pre><code class="javascript">{
 topic: "select * from ...",
+isQuery: true, // 查询类为 true, 否则 false
 payload: [
   { ts: 1749609744000, current: 20, voltage: 200, phase: 5 },
   { ts: 1749609200001, current: 31, voltage: 210, phase: 4 },
@@ -113,6 +115,7 @@ level: "info"
 输出 <code>msg:</code>
 <pre><code class="javascript">{
   topic:"insert into test.d0 value (NOW, 10, 219, 0.32)",
+  isQuery: false,
   payload: {
    affectRows: 1,
    totalTime: 8,
@@ -130,7 +133,8 @@ level: "info"
 输出 <code>msg:</code>
 <pre><code class="javascript">{
 topic:"select * from test.d0",
-  payload: [
+isQuery: true,
+payload: [
   { ts: 1749609744000, current: 10, voltage: 219, phase: 0.32 },
   { ts: 1749609200001, current: 31, voltage: 210, phase: 4 },
     ...
