@@ -24,8 +24,6 @@ Prepare the following environment:
 - Node-RED >= 3.0.0, [Node-RED installation](https://nodered.org/docs/getting-started/).
 - Node.js Connector for TDengine >= 3.1.8, get from [npmjs.com](https://www.npmjs.com/package/@tdengine/websocket).
 
-The calling relationship of the above installation components is shown in the following figure:
- ![td-frame](img/td-frame.webp)
 
 ## Configure Data Source
   TDengine WebSocket connection string format:
