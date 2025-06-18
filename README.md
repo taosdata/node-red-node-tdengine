@@ -22,7 +22,6 @@ Prepare the following environment:
 - taosAdapter is running normally, refer to [taosAdapter](../../../tdengine-reference/components/taosadapter/).
 - Node-RED >= 3.0.0, [Node-RED installation](https://nodered.org/docs/getting-started/).
 - Node.js Language Connector for TDengine >= 3.1.8, get from [npmjs.com](https://www.npmjs.com/package/@tdengine/websocket).
-- Node-RED Plugin for TDengine >= 1.0.0, get from [npmjs.com](https://www.npmjs.com/package/node-red-node-tdengine).
 
 The calling relationship of the above installation components is shown in the following figure:
  ![td-frame](img/td-frame.webp)
