@@ -1,88 +1,147 @@
-
 <script type="text/html" data-help-name="TDengineServer">
-    <p>Add the credentials for accessing your database here.</p>
-    <p>Timezone can be set like GMT, EST5EDT, UTC, etc</p>
-    <p>The Charset defaults to the "old" 3 byte TDengine UTF8. If you need support for emojis etc then use UTF8MB4.</p>
+     <p><b>Database Connection Settings</b></p>
+     <ul>
+        <li>Connect to TDengine database using WEBSOCKET protocol.</li>
+            <p>On-premises deployment connection string format: <code>ws://user:password@host:port</code>.</p>
+            <ul>
+              <li>host: TDengine server name or IP address</li>
+              <li>port: Port number, default <code>6041</code></li> 
+              <li>user: Username, default <code>root</code></li> 
+              <li>password: Password, default <code>taosdata</code></li> 
+            </ul>  
+            <p>Cloud service connection string format: <code>wss://gw.us-west-2.aws.cloud.tdengine.com?token=0df909...</code><p>
+            <ul>
+              <li>host: gw.us-west-2.aws.cloud.tdengine.com</li>
+              <li>token: Login to <a href="https://cloud.taosdata.com/">Cloud Service Website</a> to obtain</li> 
+            </ul>
+        <li>Select "Host/Port" connection type to avoid exposing passwords in plain text</li>
+        <li>Detailed connection properties reference: 
+            <a href="https://docs.taosdata.com/reference/connector/node/#url-%E8%A7%84%E8%8C%83" target="_blank">
+                URL Specification
+            </a>
+        </li>
+     </ul>
 </script>
 
-<script type="text/html" data-help-name="tdengine">
-    <p><b>TDengine Database Node</b></p>
-    <p>Provides SQL execution interface for TDengine write and query operations.</p>
+<script type="text/html" data-help-name="tdengine-operator">
+    <p><b>TDengine Database Operation Node</b></p>
+    <p>This node provides SQL execution interface supporting TDengine data write/query operations.</p>
 
-    <h3>Features</h3>
+    <h3>Key Features</h3>
     <ul>
-        <li>Supports all TDengine SQL operations (SELECT/INSERT/CREATE/etc.)</li>
-        <li>Unified interface for both read and write operations (SQL passed via <code>msg.topic</code>)</li>
-        <li>Auto-detects query types (SELECT/SHOW/DESC/EXPLAIN) vs write operations</li>
+        <li>Support for both on-premises and cloud service data sources</li>
+        <li>Full coverage of all TDengine SQL operations (SELECT/INSERT/CREATE/ALTER/SHOW, etc.)</li>
+        <li>Unified interface for read/write operations (SQL passed via <code>msg.topic</code>)</li>
     </ul>
 
     <h3>Node Status</h3>
-    <div class="node-status-list">
-        <p><i class="fa fa-circle status-dot status-connecting"></i> Connecting (Gray)</p>
-        <p><i class="fa fa-circle status-dot status-connected"></i> Operational (Green)</p>
-        <p><i class="fa fa-circle status-dot status-error"></i> Error (Red)</p>
-    </div>
+    <ul>
+        <li>Grey: Connecting</li>
+        <li>Green: Operational</li>
+        <li>Red: Malfunction</li>
+    </ul>
 
     <h3>Input Format</h3>
-    <pre><code class="javascript">msg = {
-    topic: "SQL statement",  // Required
-    payload: { ... }         // Optional additional parameters
-}</code></pre>
-    <p>Special characters and escape sequences must follow JSON string specifications</p>
+    <p>Pass SQL statement via topic:</p>
+<code class="javascript">
+msg = {
+  topic: "SQL statement"
+}
+</code>
+    <p>Special characters and escape sequences in SQL must follow JSON string specifications.</p>
 
     <h3>Output Format</h3>
-    <h4>Write Operations (INSERT/CREATE/etc.)</h4>
-    <pre><code class="javascript">{
-    topic: "Original SQL statement",
-    payload: {
-        affectRows: 2,   // Affected rows count
-        totalTime: 3,    // Total execution time (ms)
-        timing: 1683311  // Server-side execution time (ns)
-    }
-}</code></pre>
+    Automatically distinguishes between query-type (SELECT/SHOW/DESC/EXPLAIN) and write-type operations.
+    
+    <h4>Write Operations</h4>
+    <code>payload</code> contains write results, topic passes through SQL:
+<pre><code class="javascript">msg = {
+ topic: "insert into ...",
+ isQuery: false, // true for query operations
+ payload: {
+   affectRows: 2,  // Affected rows
+   totalTime: 3,   // Total write time (ms)
+   timing: 1683311 // Server-side execution time (ns)
+ }
+}
+</code></pre>
 
-    <h4>Query Operations (SELECT/SHOW/etc.)</h4>
-    <pre><code class="javascript">{
-    topic: "Original SQL statement",
-    payload: [
-        { ts: 1749609744733n, current: 1, voltage: 1, phase: 5 },
-        { ts: 1749609200554n, current: 1, voltage: 1, phase: 4 },
-        ...
-    ]
-}</code></pre>
-    <p>Data type mapping reference:
-        <a href="https://docs.taosdata.com/reference/connector/node/" target="_blank">
+    <h4>Query Operations</h4>
+    <p><code>payload</code> contains query results, topic passes through SQL:</p>
+<pre><code class="javascript">{
+topic: "select * from ...",
+isQuery: true, // true for query operations
+payload: [
+  { ts: 1749609744000, current: 20, voltage: 200, phase: 5 },
+  { ts: 1749609200001, current: 31, voltage: 210, phase: 4 },
+    ...
+]}
+</code></pre>
+<p>Query results are row data objects where properties correspond to column names. For data type mappings:</p>
+    <p>
+        <a href="https://docs.taosdata.com/reference/connector/node/#%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E6%98%A0%E5%B0%84" target="_blank">
             TDengine NodeJS Connector Type Mapping
         </a>
     </p>
 
     <h3>Error Handling</h3>
     <ul>
-        <li>Errors automatically throw exceptions (no msg passed downstream)</li>
+        <li>Automatically throws exceptions on operation failure (does not pass msg downstream)</li>
         <li>Use Catch node to handle errors</li>
-        <li>Error logs contain full error objects and TDengine native error codes</li>
-        <li>Node status changes to <code>Error</code> on failure</li>
+        <li>Error logs include full error objects and TDengine native error codes</li>
+        <li>Node status changes to <code>Malfunction</code> on errors</li>
     </ul>
 
-    <h3>Logging Configuration</h3>
-    <pre><code class="json">// settings.js
+    <h3>Log Configuration</h3>
+    Log levels follow Node-RED settings:
+<pre><code class="json">// settings.js
 logging: {
-    level: "info"  // Supported: error, warn, info, debug, trace
+level: "info"  
 }</code></pre>
     <ul>
-        <li>Log format: [Timestamp] [Node Name] Capitalized English description</li>
+        <li>Log format: [Timestamp] [Node Name] [Message]</li>
+        <li>Capitalized messages indicate new operation phases</li>
         <li>Supported levels: error, warn, info, debug</li>
-        <li>Logs are English-only</li>
     </ul>
 
     <h3>Usage Examples</h3>
     <div class="node-help-examples">
-        <p><b>Insert Data:</b></p>
-        <pre><code class="javascript">msg.topic = "INSERT INTO meters 
-               VALUES (NOW, 10.2, 219, 0.32)";</code></pre>
+        <p><b>Data Insert:</b></p>
+Input <code>msg:</code> 
+<pre><code class="javascript">{
+  topic:"insert into test.d0 values (NOW, 10, 219, 0.32)"
+}</code></pre>
 
-        <p><b>Query Data:</b></p>
-        <pre><code class="javascript">msg.topic = "SELECT * FROM meters 
-               WHERE voltage > 220";</code></pre>
-    </div>
+Output <code>msg:</code>
+<pre><code class="javascript">{
+  topic:"insert into test.d0 values (NOW, 10, 219, 0.32)",
+  isQuery: false,
+  payload: {
+   affectRows: 1,
+   totalTime: 8,
+   timing: 3682352
+  }    
+}
+</code></pre>
+
+        <p><b>Data Query:</b></p>
+Input <code>msg:</code> 
+<pre><code class="javascript">{
+  topic:"select * from test.d0"
+}</code></pre>
+
+Output <code>msg:</code>
+<pre><code class="javascript">{
+topic:"select * from test.d0",
+isQuery: true,
+payload: [
+  { ts: 1749609744000, current: 10, voltage: 219, phase: 0.32 },
+  { ts: 1749609200001, current: 31, voltage: 210, phase: 4 },
+    ...
+]}</code></pre>
+</div>
+
+<h3>About TDengine</h3>
+<a href="https://www.tdengine.com">TDengine</a> is a time-series database purpose-built for Industry 4.0 and Industrial IoT. It enables real-time ingestion, storage, analysis, and distribution of petabytes of data per day, generated by billions of sensors and data collectors. With TDengine making big data accessible, valuable, and affordable, digital transformation has never been easier.
+<p>&nbsp;</p>
 </script>

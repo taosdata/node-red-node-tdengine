@@ -1,21 +1,118 @@
 <script type="text/html" data-help-name="tdengine-consumer">
-    <p>A Node-RED input node that consumes messages from a TDengine TMQ topic using WebSocket.</p>
-    <p>It connects to the specified TDengine WebSocket URL and subscribes to the given topic.</p>
-    <p>Received messages are output as Node-RED messages with the payload containing the parsed JSON data.</p>
-    <p><b>Configuration:</b></p>
+    <p><b>TDengine Subscription Consumer Node</b></p>
+    <p>This node automatically connects to a specified TDengine server and subscribes to given topics.</p>
+
+    <h3>Key Features</h3>
     <ul>
-        <li><b>URI:</b> The WebSocket URL of your TDengine TMQ instance (e.g., <code>ws://your_tdengine_ip:6041/rest/ws/tmq</code>).</li>
-        <li><b>Topic:</b> The TDengine topic to subscribe to.</li>
-        <li><b>Group ID:</b> The consumer group ID. Defaults to <code>group1</code>.</li>
-        <li><b>Client ID:</b> The client ID for this consumer. Defaults to a unique ID.</li>
-        <li><b>Auto Commit:</b> Whether to automatically commit offsets. Defaults to <code>true</code>.</li>
-        <li><b>Commit Interval (ms):</b> The interval in milliseconds for automatic commits. Defaults to <code>1000</code>.</li>
-        <li><b>Auto Offset Reset:</b> What to do when there is no initial offset in Kafka or if the current offset does not exist any more on the server (e.g. because that data has been deleted):
+        <li>Support for both on-premises and cloud service data sources</li>
+        <li>Flexible configuration of subscription properties</li>
+        <li>Support subscribing to multiple topics simultaneously.</li>
+        <li>Automatic saving of consumption progress</li>
+        <li>Automatic reconnection after server disconnection</li>
+    </ul>
+
+    <h3>Node Status</h3>
+    <ul>
+        <li>Grey: Connecting</li>
+        <li>Green: Operational</li>
+        <li>Red: Malfunction</li>
+    </ul>
+    
+    <h3>Configuration:</h3>
+    <ul>
+        <li><b>Name:</b> Optional name for the node in the flow editor.</li>        
+        <li><b>Subscription Server:</b> WebSocket address of the subscription server.
+            <p>On-premises deployment format: <code>ws://host:port</code>.</p>
             <ul>
-                <li><code>earliest</code>: automatically reset the offset to the earliest offset.</li>
-                <li><code>latest</code>: automatically reset the offset to the latest offset.</li>
+              <li>host: TDengine server name or IP address</li>
+              <li>port: Port number, default <code>6041</code></li> 
+            </ul>  
+            <p>Cloud service format: <code>wss://gw.us-west-2.aws.cloud.tdengine.com?token=0df909...</code><p>
+            <ul>
+              <li>host: gw.us-west-2.aws.cloud.tdengine.com</li>
+              <li>token: Obtain from <a href="https://cloud.tdengine.com/">Cloud Service Website</a></li> 
+            </ul> 
+        </li>
+        <li><b>Username:</b> Server username (Note: Cloud authorization is in TOKEN, not required)</li>
+        <li><b>Password:</b> Server password (Note: Cloud authorization is in TOKEN, not required)</li>
+        <li><b>Subscription Topics:</b> Topic names to subscribe to (comma separated)</li>
+        <li><b>Consumer Group ID:</b> Consumer group ID, default <code>group1</code></li>
+        <li><b>Client ID:</b> Unique client identifier for this consumer</li>
+        <li><b>Initial Offset:</b>
+            <ul>
+                <li><code>earliest</code>: Subscribe from beginning</li>
+                <li><code>latest</code>: Subscribe only from latest data</li>
             </ul>
         </li>
-        <li><b>Name:</b> An optional name for the node in the flow editor.</li>
+        <li><b>Poll Timeout (ms):</b> Wait time for data consumption, default <code>5000</code></li>
+        <li><b>Auto Commit:</b> Enable automatic offset committing, default <code>true</code></li>
+        <li><b>Commit Interval (ms):</b> Auto-commit interval, default <code>5000</code></li>
     </ul>
+
+    <h3>Input Format</h3>
+    <p>Source node (no input)</p>
+
+    <h3>Output Format</h3>
+    <p>payload outputs array of objects where properties correspond to column names:</p>
+    <p>
+        <a href="https://docs.taosdata.com/reference/connector/node/#%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E6%98%A0%E5%B0%84" target="_blank">
+            TDengine NodeJS Connector Type Mapping
+        </a>
+    </p>
+
+<pre><code class="json">{
+  topic: Subscription topic,
+  database: Database name,
+  vgroup_id: Data partition,
+  precision: Database precision
+  payload: [{ 
+    column_name1: value1,
+    column_name2: value2,
+    ...
+  },
+  ...
+  ],
+}</code></pre>
+
+    <h3>Error Handling</h3>
+    <ul>
+        <li>Automatically throws exceptions on failure (no msg passed downstream)</li>
+        <li>Use Catch node to handle errors</li>
+        <li>Error logs include complete error objects and TDengine error codes</li>
+        <li>Node status changes to <code>Malfunction</code> on errors</li>
+    </ul>
+
+    <h3>Log Configuration</h3>
+    Log levels follow Node-RED settings:
+<pre><code class="json">// settings.js
+logging: {
+level: "info"  
+}</code></pre>
+    <ul>
+        <li>Log format: [Timestamp] [Node Name] [Message]</li>
+        <li>Capitalized messages indicate new operation phases</li>
+        <li>Supported levels: error, warn, info, debug</li>
+    </ul>
+
+    <h3>Usage Example</h3>
+    <div class="node-help-examples">
+        <p><b>Subscription output for topic1:</b></p>
+
+        <pre><code class="json">{
+  topic: 'topic1',
+  payload: [{ 
+    ts: 1749281716809,
+    current: 1,
+    voltage: 2, 
+    phase:   4 
+  } ],
+  database: 'test',
+  vgroup_id: 4,
+  precision: 0
+}</code></pre>
+</div>
+
+<h3>About TDengine</h3>
+<a href="https://www.tdengine.com">TDengine</a> is a time-series database purpose-built for Industry 4.0 and Industrial IoT. It enables real-time ingestion, storage, analysis, and distribution of petabytes of data per day, generated by billions of sensors and data collectors. With TDengine making big data accessible, valuable, and affordable, digital transformation has never been easier.
+<p>&nbsp;</p>
 </script>
