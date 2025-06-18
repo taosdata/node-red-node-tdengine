@@ -1,59 +1,122 @@
-node-red-node-tdengine
-========================
-A <a href="http://nodered.org" target="_new">Node-RED</a> node to read and write and subscribe to a TDengine database.
+## Overview
+"node-red-node-tdengine"​ is the official plugin developed by ​TAOS Data​ for Node-RED. Composed of two nodes, the "tdengine-operator"​ node provides SQL execution capabilities for data writing/querying and metadata management functions. The ​"tdengine-consumer"​ node offers data subscription and consumption capabilities, designed to consume messages from specific TOPICs on designated subscription servers.
 
-Install
--------
+## Features
 
-Either use the `Node-RED Menu - Manage Palette - Install`, or run the following command in your Node-RED user directory - typically `~/.node-red`
+### tdengine-operator
+- Support TDengine local deployment or cloud service data sources. 
+- Full coverage of all TDengine SQL operations (SELECT/INSERT/CREATE/ALTER/SHOW, etc.).
+- Unified interface for handling both read and write operations using `msg.topic` to pass SQL statements.
 
-    npm i node-red-node-tdengine
-
-
-Usage
------
-
-Allows basic access to a TDengine database.
-
-This node uses the **query** operation against the configured database. This does allow both INSERTS and DELETES.
-
-By its very nature it allows SQL injection... so *be careful out there...*
-
-The `msg.topic` must hold the *query* for the database, and the result is returned in `msg.payload`.
-
-Typically the returned payload will be an array of the result rows.
-
-If nothing is found for the key then *null* is returned.
-
-The reconnect retry timeout in milliseconds can be changed by adding a line to **settings.js**
-```javascript
-tdengineReconnectTime: 30000,
-```
-
-The timezone can be set like GMT, EST5EDT, UTC, etc.
-
-The charset defaults to the "old" TDenigne 3 byte UTF. If you need support for emojis etc then use UTF8MB4.
+### tdengine-consumer
+- Support TDengine local deployment or cloud service data sources. 
+- Flexible configuration of subscription properties. 
+- Automatically submit and save consumption progress. 
+- Automatically reconnect after server disconnection. 
 
 
-Preparing Queries
------
-```javascript
-msg.payload=[24, 'example-user'];
-msg.topic="INSERT INTO users (`userid`, `username`) VALUES (?, ?);"
+## Prerequisites
+
+Prepare the following environment:
+- TDengine >= 3.3.2.0  (Enterprise/Community/Cloud Edition are available).
+- taosAdapter is running normally, refer to [taosAdapter](../../../tdengine-reference/components/taosadapter/).
+- Node-RED >= 3.0.0, [Node-RED installation](https://nodered.org/docs/getting-started/).
+- Node.js Language Connector for TDengine >= 3.1.8, get from [npmjs.com](https://www.npmjs.com/package/@tdengine/websocket).
+- Node-RED Plugin for TDengine >= 1.0.0, get from [npmjs.com](https://www.npmjs.com/package/node-red-node-tdengine).
+
+The calling relationship of the above installation components is shown in the following figure:
+ ![td-frame](img/td-frame.webp)
+
+
+ ## Installation
+
+ ``` bash
+   npm i node-red-node-tdengine
+ ```
+
+ ## Quick Start
+
+ ``` javascript
+ // Example: Querying data
+msg.topic = "SELECT * FROM test.meters LIMIT 10";
 return msg;
-```
 
-with named parameters:
-
-```javascript
-msg.payload={}
-msg.payload.userToChange=42;
-msg.payload.newUsername="example-user";
-msg.topic="INSERT INTO users (`userid`, `username`) VALUES (:userToChange, :newUsername) ON DUPLICATE KEY UPDATE `username`=:newUsername;"
+// Example: Inserting data
+msg.topic = "INSERT INTO test.d0 VALUES ('2025-06-10 10:00:02.001', 23.5, 220, 3)";
 return msg;
-```
+ ```
 
-Documentation
------
- 
-<a href="https://www.npmjs.com/package/tdengine" target="_new">Documentation</a> of the used Node.js package    
+ ## Output Formats
+
+- Insert Result
+    ``` json
+    {
+    "topic":  "insert into test.d1 values (now, 20, 203, 2);",
+    "_msgid": "8f50fe84338387d7",
+    "query":  false,
+    "payload":{
+        "affectRows": 1,
+        "totalTime":  2,
+        "timing":     "961982"
+    }
+    }
+    ```
+
+- Query Result
+    ``` json
+    {
+    "topic":  "select tbname,avg(current) ...",
+    "_msgid": "0d19e9b82ae3841a",
+    "query":  true,
+    "payload": [
+        {
+        "tbname":      "d2",
+        "avg(current)": 26.7,
+        "avg(voltage)": 235,
+        "sum(p)":       6329
+        },
+        {
+        "tbname":       "d0",
+        "avg(current)": 16.5,
+        "avg(voltage)": 222,
+        "sum(p)":       121
+        },
+        {
+        "tbname":       "d1",
+        "avg(current)": 29,
+        "avg(voltage)": 202,
+        "sum(p)":       5833
+        }
+    ]
+    }
+    ```
+
+- Subscribe Result
+    ``` json
+    {
+    "topic": "topic_overload",
+    "payload": [
+        {
+        "tbname":   "d1",
+        "ts":       "1750140456777",
+        "current":  31,
+        "voltage":  217,
+        "phase":    2,
+        "groupid":  4,
+        "location": "California.MountainView"
+        }
+    ],
+    "database":  "test",
+    "vgroup_id": 4,
+    "precision": 0
+    }
+    ```
+
+## Documents
+
+Full documentation available in Node-RED's in-editor help system (click the book icon).
+
+## Resources
+- [TDengine Official Website](http://www.tdengine.com)
+- [Node.js Language Connector for TDengine](https://docs.tdengine.com/tdengine-reference/client-libraries/node/)
+- [Node-RED Plugin for TDengine](https://docs.tdengine.com/third-party/collection/NODE-RED/)
