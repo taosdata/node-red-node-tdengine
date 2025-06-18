@@ -11,6 +11,7 @@
 ### tdengine-consumer
 - Support TDengine local deployment or cloud service data sources. 
 - Flexible configuration of subscription properties. 
+- Support subscribing to multiple topics simultaneously.
 - Automatically submit and save consumption progress. 
 - Automatically reconnect after server disconnection. 
 
@@ -19,9 +20,9 @@
 
 Prepare the following environment:
 - TDengine >= 3.3.2.0  (Enterprise/Community/Cloud Edition are available).
-- taosAdapter is running normally, refer to [taosAdapter](../../../tdengine-reference/components/taosadapter/).
+- taosAdapter is running, refer to [taosAdapter](https://docs.tdengine.com/tdengine-reference/components/taosadapter/).
 - Node-RED >= 3.0.0, [Node-RED installation](https://nodered.org/docs/getting-started/).
-- Node.js Language Connector for TDengine >= 3.1.8, get from [npmjs.com](https://www.npmjs.com/package/@tdengine/websocket).
+- Node.js Connector for TDengine >= 3.1.8, get from [npmjs.com](https://www.npmjs.com/package/@tdengine/websocket).
 
 The calling relationship of the above installation components is shown in the following figure:
  ![td-frame](img/td-frame.webp)
@@ -117,5 +118,5 @@ Full documentation available in Node-RED's in-editor help system (click the book
 
 ## Resources
 - [TDengine Official Website](http://www.tdengine.com)
-- [Node.js Language Connector for TDengine](https://docs.tdengine.com/tdengine-reference/client-libraries/node/)
+- [Node.js Connector for TDengine](https://docs.tdengine.com/tdengine-reference/client-libraries/node/)
 - [Node-RED Plugin for TDengine](https://docs.tdengine.com/third-party/collection/NODE-RED/)
