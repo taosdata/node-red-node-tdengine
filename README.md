@@ -1,26 +1,29 @@
-- [Overview](#overview)
-- [Features](#features)
-  - [tdengine-operator](#tdengine-operator)
-  - [tdengine-consumer](#tdengine-consumer)
-- [Prerequisites](#prerequisites)
-- [Configure Data Source](#configure-data-source)
-- [Installation](#installation)
-- [Node Status](#node-status)
-- [Input Format](#input-format)
-  - [tdengine-operator](#tdengine-operator-1)
-  - [tdengine-consumer](#tdengine-consumer-1)
-- [Output Format](#output-format)
-  - [tdengine-operator](#tdengine-operator-2)
-  - [tdengine-consumer](#tdengine-consumer-2)
-- [Quick Start](#quick-start)
-  - [Input](#input)
-  - [Output](#output)
-- [Documents](#documents)
-- [Resources](#resources)
+# TDengine Integration with Node-RED
+
+- [TDengine Integration with Node-RED](#tdengine-integration-with-node-red)
+  - [Overview](#overview)
+  - [Features](#features)
+    - [tdengine-operator](#tdengine-operator)
+    - [tdengine-consumer](#tdengine-consumer)
+  - [Prerequisites](#prerequisites)
+  - [Configure Data Source](#configure-data-source)
+  - [Installation](#installation)
+  - [Node Status](#node-status)
+  - [Input Format](#input-format)
+    - [tdengine-operator](#tdengine-operator-1)
+    - [tdengine-consumer](#tdengine-consumer-1)
+  - [Output Format](#output-format)
+    - [tdengine-operator](#tdengine-operator-2)
+    - [tdengine-consumer](#tdengine-consumer-2)
+  - [Quick Start](#quick-start)
+    - [Input](#input)
+    - [Output](#output)
+  - [Documents](#documents)
+  - [Resources](#resources)
 
 
 ## Overview
-[Node-RED](https://nodered.org/) is an open-source visual programming tool developed by IBM based on Node.js. It enables users to assemble and connect various nodes via a graphical interface to create IoT device, API, and online service connections. Supporting multi-protocol and cross-platform capabilities, it has an active community and is ideal for event-driven application development in smart home, industrial automation and other scenarios, with its main strengths being low-code and visual programming.
+[Node-RED](https://nodered.org/) is an open-source visual programming tool developed by IBM based on Node.js. It enables users to assemble and connect various nodes via a graphical interface to create connections for IoT devices, APIs, and online services. Supporting multi-protocol and cross-platform capabilities, it has an active community and is ideal for event-driven application development in smart home, industrial automation, and other scenarios, with its main strengths being low-code and visual programming.
 
 The deep integration between TDengine and Node-RED provides a comprehensive solution for industrial IoT scenarios. Through Node-RED's MQTT/OPC UA/Modbus protocol nodes, data from PLCs, sensors and other devices can be collected at millisecond-level speed. Real-time queries of TDengine can trigger physical control actions like relay operations and valve switching for immediate command execution.
 
@@ -32,7 +35,7 @@ node-red-node-tdengine is the official plugin developed by TDengine for Node-RED
 ## Features
 
 ### tdengine-operator
-- Support TDengine local deployment or cloud service data sources. 
+- Supports TDengine local deployment or cloud service data sources. 
 - Full coverage of all TDengine SQL operations (SELECT/INSERT/CREATE/ALTER/SHOW, etc.).
 - Unified interface for handling both read and write operations using `msg.topic` to pass SQL statements.
 
@@ -58,7 +61,7 @@ Prepare the following environment:
    - tdengine-operator: `ws://user:password@host:port`
    - tdengine-consumer: `ws://host:port`
 
-  see detail click [here](https://docs.tdengine.com/tdengine-reference/client-libraries/node/#url-specification)
+  See detail [here](https://docs.tdengine.com/tdengine-reference/client-libraries/node/#url-specification).
 
  ## Installation
 Run the following command in your Node-RED user directory - typically ~/.node-red .
@@ -67,9 +70,9 @@ Run the following command in your Node-RED user directory - typically ~/.node-re
  ```
 
 ## Node Status
-- Grey: Connecting
-- Green: Operational
-- Red: Malfunction
+- Grey: Connecting.
+- Green: Operational.
+- Red: Malfunction.
 
 
 ## Input Format
@@ -85,7 +88,7 @@ msg = { topic: "SQL statement" }
 Special characters and escape sequences in SQL must follow JSON string specifications.
 
 ### tdengine-consumer
-Input node (no input)
+Input node (no input).
 
 
 ## Output Format
@@ -93,14 +96,14 @@ Input node (no input)
 
 ### tdengine-operator
 - Write Operations   
-payload contains write results, topic passes through SQL:
+The payload contains write results, and the topic passes through the SQL statement:
 
     ``` javascript
     msg = {
     topic: "insert into ...",
     isQuery: false, // true for query operations
     payload: {
-    affectRows: 2,  // Affected rows
+    affectedRows: 2,  // affected rows
     totalTime: 3,   // Total write time (ms)
     timing: 1683311 // Server-side execution time (ns)
     }
@@ -123,12 +126,12 @@ payload contains query results, topic passes through SQL:
 
 
 Query results are row data objects where properties correspond to column names. For data type mappings:
-[TDengine NodeJS Connector Type Mapping](https://docs.tdengine.com/tdengine-reference/client-libraries/node/#data-type-mapping)
+[TDengine NodeJS Connector Type Mapping](https://docs.tdengine.com/tdengine-reference/client-libraries/node/#data-type-mapping).
 
 ### tdengine-consumer
 
 payload outputs array of objects where properties correspond to column names:
-[TDengine NodeJS Connector Type Mapping](https://docs.tdengine.com/tdengine-reference/client-libraries/node/#data-type-mapping)
+[TDengine NodeJS Connector Type Mapping](https://docs.tdengine.com/tdengine-reference/client-libraries/node/#data-type-mapping).
 
 ``` javascript
 {
@@ -170,7 +173,7 @@ return msg;
     "_msgid": "8f50fe84338387d7",
     "isQuery": false,
     "payload":{
-        "affectRows": 1,
+        "affectedRows": 1,
         "totalTime":  2,
         "timing":     "961982"
     }
@@ -213,9 +216,9 @@ return msg;
 
 ## Documents
 
-- Full documentation available in Node-RED's in-editor help system (click the book icon).
-- [Introduce usage scenarios with Node-RED Plugin for TDengine](https://docs.tdengine.com/third-party/collection/Node-RED/)
+- Full documentation is available in Node-RED's in-editor help system (click the book icon).
+- [Introduce usage scenarios with Node-RED Plugin for TDengine](https://docs.tdengine.com/third-party/collection/Node-RED/).
 
 ## Resources
-- [TDengine Official Website](http://www.tdengine.com)
-- [Node.js Connector for TDengine](https://docs.tdengine.com/tdengine-reference/client-libraries/node/)
+- [TDengine Official Website](http://www.tdengine.com).
+- [Node.js Connector for TDengine](https://docs.tdengine.com/tdengine-reference/client-libraries/node/).

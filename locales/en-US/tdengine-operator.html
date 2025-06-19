@@ -59,7 +59,7 @@ msg = {
  topic: "insert into ...",
  isQuery: false, // true for query operations
  payload: {
-   affectRows: 2,  // Affected rows
+   affectedRows: 2, // affected rows
    totalTime: 3,   // Total write time (ms)
    timing: 1683311 // Server-side execution time (ns)
  }
@@ -117,7 +117,7 @@ Output <code>msg:</code>
   topic:"insert into test.d0 values (NOW, 10, 219, 0.32)",
   isQuery: false,
   payload: {
-   affectRows: 1,
+   affectedRows: 1,
    totalTime: 8,
    timing: 3682352
   }    
