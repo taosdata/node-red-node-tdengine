@@ -1,0 +1,26 @@
+{
+    "tdengine-operator": {
+        "label": {
+            "conntype":"Database Connection Type",
+            "connstring":"Connection String",
+            "hostport":"Host-Port",
+            "host": "Host",
+            "port": "Port",
+            "user": "User",
+            "password": "Password",
+            "database": "Database"
+        },
+        "status": {
+            "badping": "Bad Ping",
+            "error": "Error",
+            "ok": "OK",
+            "notconnected": "not yet connected"
+        },
+        "errors": {
+            "notstring": "the query is not defined as a string",
+            "notconnected": "Database not connected",
+            "notconfigured": "TDengine database not configured"
+        },
+        "tip": "Tip: Connect to TDengine Cloud Service, use the connection string method. Acquire the required connection information after logging into the cloud service website.​​"
+    }
+}

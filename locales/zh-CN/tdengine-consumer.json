@@ -1,0 +1,28 @@
+{
+    "tdengine": {
+        "label": {
+            "uri":"订阅服务器",
+            "user": "用户名",
+            "password": "密码",
+            "topic": "订阅主题组",
+            "groupid": "消费组ID",
+            "clientid": "客户端ID",
+            "offset": "消费开始位置",
+            "polltimeout": "Poll超时时间(ms)",
+            "autocommit": "自动提交",
+            "commitinterval": "自动提交间隔时间（ms）"
+        },
+        "status": {
+            "badping": "Bad Ping",
+            "error": "Error",
+            "ok": "OK",
+            "notconnected": "not yet connected"
+        },
+        "errors": {
+            "notstring": "the query is not defined as a string",
+            "notconnected": "Database not connected",
+            "notconfigured": "TDengine database not configured"
+        },
+        "tip": "Tip: The timezone should be specified as &#177;hh:mm or leave blank for 'local'."
+    }
+}

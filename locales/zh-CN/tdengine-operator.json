@@ -1,0 +1,26 @@
+{
+    "tdengine": {
+        "label": {
+            "conntype":"连接类型",
+            "connstring":"连接字符串",
+            "hostport":"主机/端口",
+            "host": "主机",
+            "port": "端口",
+            "user": "用户名",
+            "password": "密码",
+            "database": "数据库"
+        },
+        "status": {
+            "badping": "Bad Ping",
+            "error": "Error",
+            "ok": "OK",
+            "notconnected": "not yet connected"
+        },
+        "errors": {
+            "notstring": "the query is not defined as a string",
+            "notconnected": "Database not connected",
+            "notconfigured": "TDengine database not configured"
+        },
+        "tip": "提示：连接 TDengine 云服务请使用“连接字符串”方式，所需连接信息到云服务网站登录后获取。"
+    }
+}

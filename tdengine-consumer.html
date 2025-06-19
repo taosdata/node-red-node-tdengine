@@ -1,0 +1,97 @@
+<script type="text/html" data-template-name="tdengine-consumer">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> <span data-i18n="node-red:common.label.name"></span> </label>
+        <input type="text" id="node-input-name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-uri"><i class="fa fa-link"></i><span data-i18n="tdengine.label.uri"></span></label>
+        <input type="text" id="node-input-uri">
+    </div>
+    <div class="form-row">
+        <label for="node-input-user"><i class="fa fa-user"></i><span data-i18n="tdengine.label.user"></span></label>
+        <input type="text" id="node-input-user">
+    </div>
+    <div class="form-row">
+        <label for="node-input-password"><i class="fa fa-lock"></i> <span data-i18n="tdengine.label.password"></span></label>
+        <input type="password" id="node-input-password">
+    </div>
+    <div class="form-row">
+        <label for="node-input-topic"><i class="fa fa-tag"></i><span data-i18n="tdengine.label.topic"></span></label>
+        <input type="text" id="node-input-topic">
+    </div>
+    <div class="form-row">
+        <label for="node-input-groupId"><i class="fa fa-users"></i><span data-i18n="tdengine.label.groupid"></span></label>
+        <input type="text" id="node-input-groupId">
+    </div>
+    <div class="form-row">
+        <label for="node-input-clientId"><i class="fa fa-user"></i> <span data-i18n="tdengine.label.clientid"></span></label>
+        <input type="text" id="node-input-clientId">
+    </div>
+    <div class="form-row">
+        <label for="node-input-autoOffsetReset"><i class="fa fa-history"></i><span data-i18n="tdengine.label.offset"></span></label>
+        <select id="node-input-autoOffsetReset">
+            <option value="earliest">Earliest</option>
+            <option value="latest">Latest</option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-input-pollTimeout"><i class="fa fa-clock-o"></i><span data-i18n="tdengine.label.polltimeout"></span></label>
+        <input type="text" id="node-input-pollTimeout">
+    </div>    
+    <p></p>
+    <div class="form-row">
+        <label for="node-input-autoCommit"><i class="fa fa-paper-plane"></i><span data-i18n="tdengine.label.autocommit"></span></label>
+        <input type="checkbox" id="node-input-autoCommit" style="width:auto;" data-bind="checked: autoCommit">
+    </div>
+    <div class="form-row" id="auto-commit-interval-row">
+        <label for="node-input-autoCommitIntervalMs"><i class="fa fa-clock-o"></i><span data-i18n="tdengine.label.commitinterval"></span></label>
+        <input type="number" id="node-input-autoCommitIntervalMs">
+    </div>
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('tdengine-consumer', {
+        category: 'storage-input',
+        color: '#a6bb00',
+        defaults: {
+            name:        { value: '' },
+            uri:         { value: '', required: true },
+            pollTimeout: { value: 5000},
+            topic:       { value: '', required: true },
+            groupId:     { value: 'group1' },
+            clientId:    { value: '' },
+            autoCommitIntervalMs: { value: 5000 },
+            autoOffsetReset:      { value: 'earliest' },
+            autoCommit:           { value: true }
+        },
+        credentials: {
+            user:     {type: "text"},
+            password: {type: "password"}
+        },        
+        inputs: 0,
+        outputs: 1,
+        icon: "tdengine.png",
+        label: function () {
+            return this.name || 'TDengine Consumer';
+        },
+        labelStyle: function () {
+            return this.name ? 'node_label_italic' : '';
+        },
+        oneditprepare: function() {
+            // Initial state
+            toggleAutoCommitIntervalRow(this.autoCommit);
+            // Bind change event
+            $("#node-input-autoCommit").change(function() {
+                toggleAutoCommitIntervalRow($(this).is(':checked'));
+            });
+        }
+    });
+
+    function toggleAutoCommitIntervalRow(show) {
+        if (show) {
+            $('#auto-commit-interval-row').show();
+        } else {
+            $('#auto-commit-interval-row').hide();
+        }
+    }
+</script>

@@ -1,0 +1,45 @@
+{
+    "name": "node-red-node-tdengine",
+    "version": "1.0.0",
+    "description": "The official plugin developed by TDengine for Node-RED.",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/taosdata/node-red-node-tdengine.git",
+        "directory": "./"
+    },
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/taosdata/taos-connector-node/issues"
+    },
+    "keywords": [
+        "node-red",
+        "tdengine",
+        "tdengine-operator",
+        "tdengine-consumer",
+        "taos",
+        "subscribe",
+        "consumer",
+        "time series",
+        "tdengine plugin",
+        "node-red-contrib-tdengine"
+    ],
+    "node-red": {
+        "version": ">=3.0.0",
+        "nodes": {
+            "tdengine-operator": "tdengine-operator.js",
+            "tdengine-consumer": "tdengine-consumer.js",
+            "icon": "tdengine.png"
+        }
+    },
+    "dependencies": {
+        "@tdengine/websocket": ">=3.1.8"
+    },    
+    "author": {
+        "name": "TaosData Inc.",
+        "email": "support@taosdata.com",
+        "url": "https://www.tdengine.com"
+    },
+    "engines": {
+        "node": ">=16"
+    }
+}
