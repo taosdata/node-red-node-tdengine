@@ -59,7 +59,7 @@ msg = {
  topic: "insert into ...",
  isQuery: false, // 查询类为 true, 否则 false
  payload: {
-   affectedRows: 2,  // 影响行数
+   affectRows: 2,  // 影响行数
    totalTime: 3,   // 写入总耗时（毫秒）
    timing: 1683311 // 写入在服务器上执行时间（纳秒）
  }
@@ -117,7 +117,7 @@ level: "info"
   topic:"insert into test.d0 value (NOW, 10, 219, 0.32)",
   isQuery: false,
   payload: {
-   affectedRows: 1,
+   affectRows: 1,
    totalTime: 8,
    timing: 3682352
   }    

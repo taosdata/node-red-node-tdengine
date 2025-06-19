@@ -103,7 +103,7 @@ The payload contains write results, and the topic passes through the SQL stateme
     topic: "insert into ...",
     isQuery: false, // true for query operations
     payload: {
-    affectedRows: 2,  // affected rows
+    affectRows: 2,  // affect rows
     totalTime: 3,   // Total write time (ms)
     timing: 1683311 // Server-side execution time (ns)
     }
@@ -173,7 +173,7 @@ return msg;
     "_msgid": "8f50fe84338387d7",
     "isQuery": false,
     "payload":{
-        "affectedRows": 1,
+        "affectRows": 1,
         "totalTime":  2,
         "timing":     "961982"
     }

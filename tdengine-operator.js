@@ -189,7 +189,7 @@ module.exports = function(RED) {
         function covResult(result) {
             try {
                 let obj = {
-                    affectedRows: result._affectRows,
+                    affectRows: result._affectRows,
                     totalTime:  result._totalTime,
                     timing:     result._timing
                 };
