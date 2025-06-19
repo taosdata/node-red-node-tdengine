@@ -153,11 +153,11 @@ payload outputs array of objects where properties correspond to column names:
 
 ``` javascript
 // Example: Inserting data
-msg.topic = "INSERT INTO test.d0 VALUES ('2025-06-10 10:00:02.001', 23.5, 220, 3)";
+msg.topic = "insert into test.d0 values ('2025-06-10 10:00:02.001', 23.5, 220, 3)";
 return msg;
 
 // Example: Querying data
-msg.topic = "SELECT * FROM test.meters LIMIT 10";
+msg.topic = "select * from test.d0";
 return msg;
 ```
 
@@ -166,9 +166,9 @@ return msg;
 - Insert Result
     ``` json
     {
-    "topic":  "insert into test.d1 values (now, 20, 203, 2);",
+    "topic":  "insert into test.d0 values ('2025-06-10 10:00:02.001', 23.5, 220, 3)",
     "_msgid": "8f50fe84338387d7",
-    "isQuery":  false,
+    "isQuery": false,
     "payload":{
         "affectRows": 1,
         "totalTime":  2,
@@ -180,28 +180,12 @@ return msg;
 - Query Result
     ``` json
     {
-    "topic":  "select tbname,avg(current) ...",
+    "topic":  "select * from test.d0",
     "_msgid": "0d19e9b82ae3841a",
     "isQuery":  true,
     "payload": [
-        {
-        "tbname":      "d2",
-        "avg(current)": 26.7,
-        "avg(voltage)": 235,
-        "sum(p)":       6329
-        },
-        {
-        "tbname":       "d0",
-        "avg(current)": 16.5,
-        "avg(voltage)": 222,
-        "sum(p)":       121
-        },
-        {
-        "tbname":       "d1",
-        "avg(current)": 29,
-        "avg(voltage)": 202,
-        "sum(p)":       5833
-        }
+      { "ts": 1749609744000, "current": 10, "voltage": 219, "phase": 0.32 },
+      { "ts": 1749609200001, "current": 31, "voltage": 210, "phase": 4 }
     ]
     }
     ```

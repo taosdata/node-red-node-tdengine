@@ -1,20 +1,22 @@
 {
     "name": "node-red-node-tdengine",
     "version": "1.0.0",
-    "description": "The official TDengine plugin​ for Node-RED.",
+    "description": "The official plugin developed by TDengine for Node-RED.",
     "repository": {
         "type": "git",
         "url": "https://github.com/taosdata/node-red-node-tdengine.git",
         "directory": "./"
     },
-    "license": "AGPL-3.0-only",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/taosdata/taos-connector-node/issues"
+    },
     "keywords": [
         "node-red",
         "tdengine",
         "tdengine-operator",
         "tdengine-consumer",
         "taos",
-        "td",
         "subscribe",
         "consumer",
         "time series",
@@ -33,7 +35,7 @@
         "@tdengine/websocket": ">=3.1.8"
     },    
     "author": {
-        "name": "tdengine",
+        "name": "TaosData Inc.",
         "email": "support@taosdata.com",
         "url": "https://www.tdengine.com"
     },
