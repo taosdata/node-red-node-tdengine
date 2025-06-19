@@ -34,7 +34,7 @@
         "db": "e2370922a8a5e70e",
         "name": "td-writer",
         "x": 500,
-        "y": 160,
+        "y": 120,
         "wires": [
             [
                 "0dcdb6f664673f8a"
@@ -103,8 +103,8 @@
         "targetType": "msg",
         "statusVal": "",
         "statusType": "counter",
-        "x": 680,
-        "y": 160,
+        "x": 660,
+        "y": 120,
         "wires": []
     },
     {
@@ -114,7 +114,7 @@
         "db": "e2370922a8a5e70e",
         "name": "td-reader",
         "x": 320,
-        "y": 380,
+        "y": 220,
         "wires": [
             [
                 "e773744c20668d3e"
@@ -138,7 +138,7 @@
         "onceDelay": 0.1,
         "topic": "select tbname, avg(current),avg(voltage),sum(p) from ( select tbname,current,voltage,current*voltage/60 as p from test.meters  where  ts > now-60s partition by tbname) group by tbname;",
         "x": 130,
-        "y": 380,
+        "y": 220,
         "wires": [
             [
                 "6fed2c22511e9577"
@@ -159,7 +159,7 @@
         "statusVal": "",
         "statusType": "counter",
         "x": 510,
-        "y": 380,
+        "y": 220,
         "wires": []
     },
     {
@@ -170,7 +170,7 @@
         "scope": null,
         "uncaught": false,
         "x": 140,
-        "y": 660,
+        "y": 340,
         "wires": [
             [
                 "17137e7c7ba7b1da"
@@ -183,15 +183,15 @@
         "z": "8ada4cf724af8319",
         "name": "debug 4",
         "active": true,
-        "tosidebar": true,
+        "tosidebar": false,
         "console": false,
         "tostatus": true,
         "complete": "payload",
         "targetType": "msg",
         "statusVal": "",
         "statusType": "counter",
-        "x": 340,
-        "y": 660,
+        "x": 320,
+        "y": 340,
         "wires": []
     },
     {
@@ -216,7 +216,7 @@
         "payload": "!",
         "payloadType": "bool",
         "x": 140,
-        "y": 160,
+        "y": 120,
         "wires": [
             [
                 "ab1ccfc2a8641b3e"
@@ -236,7 +236,7 @@
         "finalize": "",
         "libs": [],
         "x": 320,
-        "y": 160,
+        "y": 120,
         "wires": [
             [
                 "113ce50070717687"
@@ -265,7 +265,7 @@
         "payload": "!",
         "payloadType": "bool",
         "x": 140,
-        "y": 240,
+        "y": 160,
         "wires": [
             [
                 "aff2362069894f41"
@@ -285,7 +285,7 @@
         "finalize": "",
         "libs": [],
         "x": 320,
-        "y": 240,
+        "y": 160,
         "wires": [
             [
                 "113ce50070717687"
@@ -306,7 +306,7 @@
         "autoOffsetReset": "earliest",
         "autoCommit": false,
         "x": 130,
-        "y": 520,
+        "y": 280,
         "wires": [
             [
                 "c4755939b74bae0f"
@@ -319,7 +319,7 @@
         "z": "8ada4cf724af8319",
         "name": "debug 3",
         "active": true,
-        "tosidebar": true,
+        "tosidebar": false,
         "console": false,
         "tostatus": true,
         "complete": "payload",
@@ -327,7 +327,7 @@
         "statusVal": "",
         "statusType": "counter",
         "x": 320,
-        "y": 520,
+        "y": 280,
         "wires": []
     }
 ]
