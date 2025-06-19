@@ -1,5 +1,12 @@
 ## Overview
-"node-red-node-tdengine"​ is the official plugin developed by ​TDengine​ for Node-RED. Composed of two nodes, the "tdengine-operator"​ node provides SQL execution capabilities for data writing/querying and metadata management functions. The ​"tdengine-consumer"​ node offers data subscription and consumption capabilities, designed to consume messages from specific TOPICs on designated subscription servers.
+[Node-RED](https://nodered.org/) is an open-source visual programming tool developed by IBM based on Node.js. It enables users to assemble and connect various nodes via a graphical interface to create IoT device, API, and online service connections. Supporting multi-protocol and cross-platform capabilities, it has an active community and is ideal for event-driven application development in smart home, industrial automation and other scenarios, with its main strengths being low-code and visual programming.
+
+The deep integration between TDengine and Node-RED provides a comprehensive solution for industrial IoT scenarios. Through Node-RED's MQTT/OPC UA/Modbus protocol nodes, data from PLCs, sensors and other devices can be collected at millisecond-level speed. Real-time queries of TDengine can trigger physical control actions like relay operations and valve switching for immediate command execution.
+
+node-red-node-tdengine is the official plugin developed by TAOS Data for Node-RED. Composed of two nodes:  
+- **tdengine-operator**: Provides SQL execution capabilities for data writing/querying and metadata management.  
+- **tdengine-consumer**: Offers data subscription and consumption capabilities from specified subscription servers and topics.
+
 
 ## Features
 
@@ -38,19 +45,102 @@ Run the following command in your Node-RED user directory - typically ~/.node-re
    npm i node-red-node-tdengine
  ```
 
- ## Quick Start
+## Node Status
+- Grey: Connecting
+- Green: Operational
+- Red: Malfunction
 
- ``` javascript
- // Example: Querying data
-msg.topic = "SELECT * FROM test.meters LIMIT 10";
-return msg;
 
+## Input Format
+
+
+### tdengine-operator
+Pass SQL statement via topic:
+
+``` javascript
+msg = { topic: "SQL statement" }
+```
+
+Special characters and escape sequences in SQL must follow JSON string specifications.
+
+### tdengine-consumer
+Input node (no input)
+
+
+## Output Format
+
+
+### tdengine-operator
+- Write Operations   
+payload contains write results, topic passes through SQL:
+
+    ``` javascript
+    msg = {
+    topic: "insert into ...",
+    isQuery: false, // true for query operations
+    payload: {
+    affectRows: 2,  // Affected rows
+    totalTime: 3,   // Total write time (ms)
+    timing: 1683311 // Server-side execution time (ns)
+    }
+    }
+    ```
+
+- Query Operations  
+payload contains query results, topic passes through SQL:
+
+    ``` javascript
+    {
+    topic: "select * from ...",
+    isQuery: true, // true for query operations
+    payload: [
+    { ts: 1749609744000, current: 20, voltage: 200, phase: 5 },
+    { ts: 1749609200001, current: 31, voltage: 210, phase: 4 },
+        ...
+    ]}
+    ```
+
+
+Query results are row data objects where properties correspond to column names. For data type mappings:
+[TDengine NodeJS Connector Type Mapping](https://docs.tdengine.com/tdengine-reference/client-libraries/node/#data-type-mapping)
+
+### tdengine-consumer
+
+payload outputs array of objects where properties correspond to column names:
+[TDengine NodeJS Connector Type Mapping](https://docs.tdengine.com/tdengine-reference/client-libraries/node/#data-type-mapping)
+
+``` javascript
+{
+  topic: Subscription topic,
+  database: Database name,
+  vgroup_id: Data partition,
+  precision: Database precision
+  payload: [{ 
+    column_name1: value1,
+    column_name2: value2,
+    ...
+  },
+  ...
+  ],
+}
+```
+
+
+## Quick Start
+
+### Input
+
+``` javascript
 // Example: Inserting data
 msg.topic = "INSERT INTO test.d0 VALUES ('2025-06-10 10:00:02.001', 23.5, 220, 3)";
 return msg;
- ```
 
- ## Output Formats
+// Example: Querying data
+msg.topic = "SELECT * FROM test.meters LIMIT 10";
+return msg;
+```
+
+ ## Output
 
 - Insert Result
     ``` json
