@@ -1,5 +1,5 @@
 ## Overview
-"node-red-node-tdengine"​ is the official plugin developed by ​TAOS Data​ for Node-RED. Composed of two nodes, the "tdengine-operator"​ node provides SQL execution capabilities for data writing/querying and metadata management functions. The ​"tdengine-consumer"​ node offers data subscription and consumption capabilities, designed to consume messages from specific TOPICs on designated subscription servers.
+"node-red-node-tdengine"​ is the official plugin developed by ​TDengine​ for Node-RED. Composed of two nodes, the "tdengine-operator"​ node provides SQL execution capabilities for data writing/querying and metadata management functions. The ​"tdengine-consumer"​ node offers data subscription and consumption capabilities, designed to consume messages from specific TOPICs on designated subscription servers.
 
 ## Features
 
