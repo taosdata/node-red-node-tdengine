@@ -1,5 +1,5 @@
 {
-    "tdengine-operator": {
+    "tdengine": {
         "label": {
             "conntype":"Database Connection Type",
             "connstring":"Connection String",
