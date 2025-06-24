@@ -217,7 +217,7 @@ return msg;
 ## Documents
 
 - Full documentation is available in Node-RED's in-editor help system (click the book icon).
-- [Introduce usage scenarios with Node-RED Plugin for TDengine](https://docs.tdengine.com/third-party/collection/Node-RED/).
+- [Introduce usage scenarios with Node-RED Plugin for TDengine](https://docs.tdengine.com/third-party/iot/Node-RED/).
 
 ## Resources
 - [TDengine Official Website](http://www.tdengine.com).
