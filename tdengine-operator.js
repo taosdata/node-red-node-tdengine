@@ -98,22 +98,30 @@ module.exports = function(RED) {
         // init db
         dbInit(node, config);
 
+        if (!checkParamValid(node)) {
+            node.error("check param valid failed.");
+            return;
+        }         
+
         // check server status
-        
         if (!node.check) {
-            let interval = 1000; // ms
+            let interval = 5000; // ms
             node.debug(`setInterval checkVer ${interval}ms`);
             node.check = setInterval(checkVer, interval);
         }
         function checkVer() {
             // get connection
-            updateStatus(node, "connecting");
+            if(node.info != "connected") {
+                updateStatus(node, "connecting");
+            }
+
             node.getConnection(function(err, conn) {
                 if (err) {
                     // err
                     node.error(`checkVer getConnection failed. err:${err}`);
                     updateStatus(node, "failed");
                     if (conn) { conn.close()}
+                    return ;
                 }
 
                 // ok -> query
@@ -136,11 +144,7 @@ module.exports = function(RED) {
         //
         node.getConnection = function(callback) {
             // check 
-            node.log("getConnection ...");
-            if (!checkParamValid(node)) {
-                callback("check param valid failed.", null);
-                return;
-            }            
+            node.log("getConnection ...");           
 
             // prepare
             var conf = null;
@@ -432,6 +436,7 @@ module.exports = function(RED) {
                             node.error(RED._("tdengine.errors.notconnected"),msg);
                             if (conn) { conn.close()}
                             if (done) { done()}
+                            return ;
                         }
 
                         // ok
@@ -467,7 +472,7 @@ module.exports = function(RED) {
 
                         } else {
                             if (typeof msg.topic !== 'string') {
-                                node.error("msg.topic : " + RED._("tdengine.errors.notstring")); 
+                                node.error("msg.topic is tdengine.errors.notstring"); 
                             }
                         }
                     })
@@ -490,7 +495,7 @@ module.exports = function(RED) {
             });
         }
         else {
-            node.error(RED._("tdengine.errors.notconfigured"));
+            node.error("tdengine.errors.notconfigured");
         }
     }
     // register
