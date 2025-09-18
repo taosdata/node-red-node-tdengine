@@ -98,24 +98,49 @@ module.exports = function(RED) {
         // init db
         dbInit(node, config);
 
+        // check server status
+        
+        if (!node.check) {
+            let interval = 1000; // ms
+            node.debug(`setInterval checkVer ${interval}ms`);
+            node.check = setInterval(checkVer, interval);
+        }
+        function checkVer() {
+            // get connection
+            updateStatus(node, "connecting");
+            node.getConnection(function(err, conn) {
+                if (err) {
+                    // err
+                    node.error(`checkVer getConnection failed. err:${err}`);
+                    updateStatus(node, "failed");
+                    if (conn) { conn.close()}
+                }
+
+                // ok -> query
+                node.query(conn, "select server_version()", function(err, rows){
+                    conn.close()
+                    if (err) {
+                        // err
+                        node.error(`checkVer query version failed. err:${err}`);
+                        updateStatus(node, "failed");
+                    } else {
+                        // ok
+                        updateStatus(node, "connected");
+                    }
+                })
+            })
+        }   
+
         //
-        // do connect
+        // get Connection
         //
         node.getConnection = function(callback) {
             // check 
             node.log("getConnection ...");
             if (!checkParamValid(node)) {
-                updateStatus(node, "invalid param");
                 callback("check param valid failed.", null);
                 return;
-            }
-
-            //
-            // connect db
-            //
-
-            updateStatus(node, "connecting");
-            
+            }            
 
             // prepare
             var conf = null;
@@ -140,19 +165,15 @@ module.exports = function(RED) {
                 .then(conn => {
                     callback(null, conn);
                     node.log("taos.sqlConnect ok." );
-                    // success
-                    updateStatus(node, "connected");
 
                 })
                 .catch(err => {
                     callback(err, null);
                     node.log("taos.sqlConnect catch error.");
-                    updateStatus(node, "failed");
                     node.error(err);
                 })
             } catch (error) {
                 // failed
-                updateStatus(node, "failed");
                 node.error(error);
             }
         }
@@ -234,14 +255,12 @@ module.exports = function(RED) {
                 .catch(error =>{
                     node.log("exec error:" + error);
                     node.error(error);
-                    updateStatus(node, "failed");
                     callback(error, null);
                 })
 
             } catch (error) {
                 node.log("exec error:" + error);
                 node.error(error);
-                updateStatus(node, "failed");                
             }
         }
 
@@ -307,7 +326,6 @@ module.exports = function(RED) {
                     
                     node.log("query error:" + fullError.message);
                     node.error(fullError);
-                    updateStatus(node, "failed");
                     callback(fullError, null);
                 }
             })();
@@ -317,6 +335,7 @@ module.exports = function(RED) {
         node.on('close', function(done) {
             // close db
             try {
+                if (node.check) { clearInterval(node.check); }
                 if (node.connected) {
                     if (node.conn) {
                         node.debug("on close conn.close().");
