@@ -439,10 +439,16 @@ module.exports = function(RED) {
                                     conn.close();
                                     if (err) {
                                         node.error(err, msg);
+                                        if (done) { done();}
+                                        return;
                                     }
                                     // ok
                                     msg.payload = rows;
                                     msg.isQuery = true;
+                                    // send
+                                    send(msg);
+                                    node.debug("send msg:" + JSON.stringify(msg, replacer));
+                                    if (done) { done();}
                                 })                                
                             } else {
                                 // insert delete alter
@@ -450,24 +456,31 @@ module.exports = function(RED) {
                                     conn.close();
                                     if (err) {
                                         node.error(err, sql);
+                                        if (done) { done();}
+                                        return ;
                                     }
                                     // ok
                                     msg.payload = result;
                                     msg.isQuery = false;
+                                    // send
+                                    send(msg);
+                                    node.debug("send msg:" + JSON.stringify(msg, replacer));
+                                    if (done) { done();}
                                 })
                             }
-                            send(msg);
-                            node.debug("send msg:" + JSON.stringify(msg, replacer));
+
                         } else {
                             conn.close();
                             if (typeof msg.topic !== 'string') {
                                 node.error("msg.topic is tdengine.errors.notstring"); 
                             }
+                            if (done) { done();}
                         }
                     })
                 } catch(error) {
                     node.log("tdengine input catch error");
                     node.error(error);
+                    if (done) { done();}
                 } finally {
                     // input msg deal finished
                     if (done) { 
