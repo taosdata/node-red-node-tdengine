@@ -1,7 +1,7 @@
 {
     "tdengine": {
         "label": {
-            "uri":"订阅服务器",
+            "uri": "订阅服务器",
             "user": "用户名",
             "password": "密码",
             "topic": "订阅主题组",

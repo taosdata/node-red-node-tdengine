@@ -1,9 +1,9 @@
 {
     "tdengine": {
         "label": {
-            "conntype":"Database Connection Type",
-            "connstring":"Connection String",
-            "hostport":"Host-Port",
+            "conntype": "Database Connection Type",
+            "connstring": "Connection String",
+            "hostport": "Host-Port",
             "host": "Host",
             "port": "Port",
             "user": "User",

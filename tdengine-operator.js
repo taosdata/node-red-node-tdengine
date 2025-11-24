@@ -2,9 +2,9 @@
  * Copyright (c) 2025 TAOS Data, Inc. MIT License.
  */
 
-module.exports = function(RED) {
+module.exports = function (RED) {
     "use strict";
-    const taos    = require('@tdengine/websocket');
+    const taos = require("@tdengine/websocket");
     //taos.setLevel("debug");
 
     //
@@ -14,14 +14,14 @@ module.exports = function(RED) {
     // init
     function dbInit(node, config) {
         // save db config
-        node.connected  = false;
+        node.connected = false;
         node.connecting = false;
 
         node.connType = config.connType;
-        node.uri      = config.uri;
-        node.host     = config.host;
-        node.port     = config.port;
-        node.db       = config.db;
+        node.uri = config.uri;
+        node.host = config.host;
+        node.port = config.port;
+        node.db = config.db;
 
         node.debug("dbInit connType: " + node.connType);
         node.debug("dbInit uri:  " + node.uri);
@@ -29,28 +29,27 @@ module.exports = function(RED) {
         node.debug("dbInit port: " + node.port);
         node.debug("dbInit user: " + node.credentials.user);
         node.debug("dbInit db:   " + node.db);
-    };
+    }
 
-    // check connect Type is host-port 
+    // check connect Type is host-port
     function isHostType(connType) {
-        return connType == "host-port"
+        return connType == "host-port";
     }
 
     // connect param valid
     function checkParamValid(node) {
-
         if (isHostType(node.connType)) {
-            if(node.host == null || node.host == "") {
+            if (node.host == null || node.host == "") {
                 node.error("host is invalid:" + node.host);
                 return false;
             }
-            if(node.port == null || node.port == "") {
+            if (node.port == null || node.port == "") {
                 node.error("port is invalid:" + node.port);
                 return false;
             }
         } else {
             // connection-string
-            if(node.uri == null || node.uri == "") {
+            if (node.uri == null || node.uri == "") {
                 node.error("uri is invalid:" + node.uri);
                 return false;
             }
@@ -65,20 +64,19 @@ module.exports = function(RED) {
         if (status == "connecting") {
             // connecting
             node.connecting = true;
-            node.connected  = false;
+            node.connected = false;
             node.emit("state", "connecting");
         } else if (status == "connected") {
             // connected
-            node.connected  = true;
+            node.connected = true;
             node.connecting = false;
-            
-        } else { 
+        } else {
             // unconnected
-            node.connected  = false;
+            node.connected = false;
             node.connecting = false;
         }
         node.log(`status: ${node.info} changed to: ${status}`);
-        node.info = status 
+        node.info = status;
         node.emit("state", status);
     }
 
@@ -86,10 +84,9 @@ module.exports = function(RED) {
     // ------------------------------  TDengineServer ----------------------------------
     //
 
-
     function TDengineServer(config) {
         var node = this;
-        
+
         // create node
         RED.nodes.createNode(node, config);
         node.log("create node TDengineServer.");
@@ -100,7 +97,7 @@ module.exports = function(RED) {
         if (!checkParamValid(node)) {
             node.error("check param valid failed.");
             return;
-        }         
+        }
 
         // check server status
         if (!node.check) {
@@ -110,22 +107,24 @@ module.exports = function(RED) {
         }
         function checkVer() {
             // get connection
-            if(node.info != "connected") {
+            if (node.info != "connected") {
                 updateStatus(node, "connecting");
             }
 
-            node.getConnection(function(err, conn) {
+            node.getConnection(function (err, conn) {
                 if (err) {
                     // err
                     node.error(`checkVer getConnection failed. err:${err}`);
                     updateStatus(node, "failed");
-                    if (conn) { conn.close()}
-                    return ;
+                    if (conn) {
+                        conn.close();
+                    }
+                    return;
                 }
 
                 // ok -> query
-                node.query(conn, "select server_version()", function(err, rows){
-                    conn.close()
+                node.query(conn, "select server_version()", function (err, rows) {
+                    conn.close();
                     if (err) {
                         // err
                         node.error(`checkVer query version failed. err:${err}`);
@@ -134,16 +133,16 @@ module.exports = function(RED) {
                         // ok
                         updateStatus(node, "connected");
                     }
-                })
-            })
-        }   
+                });
+            });
+        }
 
         //
         // get Connection
         //
-        node.getConnection = function(callback) {
-            // check 
-            node.debug("getConnection ...");           
+        node.getConnection = function (callback) {
+            // check
+            node.debug("getConnection ...");
 
             // prepare
             var conf = null;
@@ -164,114 +163,114 @@ module.exports = function(RED) {
             // conn
             try {
                 node.debug("call taos.sqlConnect...");
-                taos.sqlConnect(conf)
-                .then(conn => {
-                    callback(null, conn);
-                    node.debug("taos.sqlConnect ok." );
-
-                })
-                .catch(err => {
-                    callback(err, null);
-                    node.log("taos.sqlConnect catch error.");
-                    node.error(err);
-                })
+                taos
+                    .sqlConnect(conf)
+                    .then((conn) => {
+                        callback(null, conn);
+                        node.debug("taos.sqlConnect ok.");
+                    })
+                    .catch((err) => {
+                        callback(err, null);
+                        node.log("taos.sqlConnect catch error.");
+                        node.error(err);
+                    });
             } catch (error) {
                 // failed
                 callback(err, null);
                 node.error(error);
             }
-        }
+        };
 
         /* 
-        // stmt 
-        async function stmtInsert(sql, binds) {
-            let stmt = null;
-
-            try{
-                stmt = await node.conn.stmtInit();
-                await stmt.prepare(sql);
-
-                // loop
-                binds.forEach((row, i) => {
-                    row.forEach((col, j) => {
-                        // TODO
+            // stmt 
+            async function stmtInsert(sql, binds) {
+                let stmt = null;
+    
+                try{
+                    stmt = await node.conn.stmtInit();
+                    await stmt.prepare(sql);
+    
+                    // loop
+                    binds.forEach((row, i) => {
+                        row.forEach((col, j) => {
+                            // TODO
+                        });
                     });
-                });
-            } catch(err) {
-                node.error(err);
-            }finally {
-                if (stmt) {
-                    await stmt.close();
+                } catch(err) {
+                    node.error(err);
+                }finally {
+                    if (stmt) {
+                        await stmt.close();
+                    }
                 }
+    
+                return null;
             }
-
-            return null;
-        }
-        */
+            */
 
         // cover taos_connect_node result object to node-red result object
         function covResult(result) {
             try {
                 let obj = {
                     affectRows: result._affectRows,
-                    totalTime:  result._totalTime,
-                    timing:     result._timing
+                    totalTime: result._totalTime,
+                    timing: result._timing,
                 };
                 return obj;
             } catch (error) {
                 node.error(error);
             }
 
-            // return 
+            // return
             return null;
         }
 
         //
         // exec
         //
-        node.exec = function(operate, conn, sql, binds, callback) {
+        node.exec = function (operate, conn, sql, binds, callback) {
             // check
             if (conn == null) {
                 node.error("exec conn is null.");
                 callback("conn is null", null);
-                return ;
+                return;
             }
 
             // stmt insert
-            if(operate == "insert" && Array.isArray(binds)) {
+            if (operate == "insert" && Array.isArray(binds)) {
                 // wait taos-connect-nodejs connector support stmt2
                 // return stmtInsert(sql, binds);
                 callback("not support stmt bind write.", null);
-                return ;
-            } 
+                return;
+            }
 
             // exec
             try {
                 node.debug("exec sql:" + sql);
                 // promise call
-                conn.exec(sql)
-                .then(result =>{
-                    node.debug("result obj:" + JSON.stringify(result, replacer));
-                    callback(null, covResult(result));
-                    return ;
-                })
-                .catch(error =>{
-                    node.log("exec error:" + error);
-                    node.error(error);
-                    callback(error, null);
-                })
+                conn
+                    .exec(sql)
+                    .then((result) => {
+                        node.debug("result obj:" + JSON.stringify(result, replacer));
+                        callback(null, covResult(result));
+                        return;
+                    })
+                    .catch((error) => {
+                        node.log("exec error:" + error);
+                        node.error(error);
+                        callback(error, null);
+                    });
             } catch (error) {
                 node.log("catch exec error:" + error);
                 node.error(error);
                 callback(error, null);
             }
-        }
-
+        };
 
         //
         // query
         //
-        node.query = function(conn, sql, callback) {
+        node.query = function (conn, sql, callback) {
             // check conn is null
             if (!conn) {
                 const errMsg = "Connection is null or invalid";
@@ -283,33 +282,33 @@ module.exports = function(RED) {
             (async () => {
                 try {
                     node.debug("query sql:" + sql);
-                    
+
                     // query
-                    const wsRows = await conn.query(sql).catch(queryErr => {
+                    const wsRows = await conn.query(sql).catch((queryErr) => {
                         throw new Error(`Query execution failed: ${queryErr.message}`);
                     });
-                    
+
                     // metas
                     const metas = wsRows.getMeta();
-                    const fields = metas.map(meta => meta.name);
+                    const fields = metas.map((meta) => meta.name);
                     node.debug("get fields:" + JSON.stringify(fields, replacer));
 
                     // deal rows
                     const rows = [];
                     let i = 0;
-                    
+
                     while (true) {
                         try {
                             const hasNext = await wsRows.next();
                             if (!hasNext) break;
-                            
+
                             const rowData = await wsRows.getData();
-                            
+
                             const obj = {};
                             fields.forEach((field, index) => {
                                 obj[field] = rowData[index];
                             });
-                            
+
                             rows.push(obj);
                             node.debug(`i=${i} obj: ${JSON.stringify(obj, replacer)}`);
                             i++;
@@ -320,7 +319,7 @@ module.exports = function(RED) {
 
                     // success
                     node.debug(`query successfully. rows count=${i}`);
-                    callback(null, rows);            
+                    callback(null, rows);
                 } catch (error) {
                     // catch error
                     const fullError = new Error(`Query failed: ${error.message}`);
@@ -333,17 +332,19 @@ module.exports = function(RED) {
         };
 
         // close trigger
-        node.on('close', function(done) {
+        node.on("close", function (done) {
             // close db
             try {
-                if (node.check) { clearInterval(node.check); }                
+                if (node.check) {
+                    clearInterval(node.check);
+                }
                 node.log("on close call taos.destroy().");
                 taos.destroy();
                 updateStatus(node, "close");
             } catch (error) {
                 node.error(error);
             }
-            
+
             done();
         });
     }
@@ -351,9 +352,9 @@ module.exports = function(RED) {
     // register
     RED.nodes.registerType("TDengineServer", TDengineServer, {
         credentials: {
-            user: {type: "text"},
-            password: {type: "password"}
-        }
+            user: { type: "text" },
+            password: { type: "password" },
+        },
     });
 
     //
@@ -371,18 +372,16 @@ module.exports = function(RED) {
         // sql type
         function sqlType(sql) {
             // clear
-            let pre = sql
-                        .trim().
-                        substring(0,20).
-                        toLowerCase().
-                        replace(/\s+/g, ' ');
+            let pre = sql.trim().substring(0, 20).toLowerCase().replace(/\s+/g, " ");
             // check
             node.debug("pre sql:" + pre);
-            if (pre.startsWith("select ") || 
-                pre.startsWith("desc")    ||
-                pre.startsWith("explain ")    ||
-                pre.startsWith("show ")) {
-                return 'query';
+            if (
+                pre.startsWith("select ") ||
+                pre.startsWith("desc") ||
+                pre.startsWith("explain ") ||
+                pre.startsWith("show ")
+            ) {
+                return "query";
             } else {
                 return "exec";
             }
@@ -393,53 +392,65 @@ module.exports = function(RED) {
             var status = {};
 
             // state
-            node.tdServer.on("state", function(info) {
+            node.tdServer.on("state", function (info) {
                 if (node.info == info) {
                     // no change
                     node.debug(`node info no change. info=${info}`);
-                    return ;
+                    return;
                 }
 
                 // changed
                 node.info = info;
                 node.debug("on state:" + info);
                 if (info === "connecting") {
-                    node.status({fill: "grey", shape: "ring", text: info});
+                    node.status({ fill: "grey", shape: "ring", text: info });
                 } else if (info === "connected") {
-                    node.status({fill: "green", shape: "dot", text: info});
+                    node.status({ fill: "green", shape: "dot", text: info });
                 } else {
-                    node.status({fill: "red", shape: "ring", text: info});
+                    node.status({ fill: "red", shape: "ring", text: info });
                 }
             });
 
             // input sql
-            node.on("input",  async function(msg, send, done) {
-                node.debug("recv input msg.topic:" + msg.topic + " payload:" + msg.payload);
+            node.on("input", async function (msg, send, done) {
+                node.debug(
+                    "recv input msg.topic:" + msg.topic + " payload:" + msg.payload
+                );
 
                 try {
-                    send = send || function() { node.send.apply(node, arguments) };
+                    send =
+                        send ||
+                        function () {
+                            node.send.apply(node, arguments);
+                        };
 
                     // get connection
-                    node.tdServer.getConnection(function(err, conn) {
+                    node.tdServer.getConnection(function (err, conn) {
                         if (err) {
                             node.error("tdengine.errors.notconnected", msg);
-                            if (conn) { conn.close();}
-                            if (done) { done();}
-                            return ;
+                            if (conn) {
+                                conn.close();
+                            }
+                            if (done) {
+                                done();
+                            }
+                            return;
                         }
 
                         // ok
-                        if (typeof msg.topic === 'string') {
+                        if (typeof msg.topic === "string") {
                             var sql = msg.topic;
                             var operate = sqlType(sql);
                             node.debug("operate:" + operate);
                             if (operate == "query") {
                                 // select show
-                                node.tdServer.query(conn, sql, function(err, rows){
+                                node.tdServer.query(conn, sql, function (err, rows) {
                                     conn.close();
                                     if (err) {
                                         node.error(err, msg);
-                                        if (done) { done();}
+                                        if (done) {
+                                            done();
+                                        }
                                         return;
                                     }
                                     // ok
@@ -448,54 +459,68 @@ module.exports = function(RED) {
                                     // send
                                     send(msg);
                                     node.debug("send msg:" + JSON.stringify(msg, replacer));
-                                    if (done) { done();}
-                                })                                
+                                    if (done) {
+                                        done();
+                                    }
+                                });
                             } else {
                                 // insert delete alter
-                                node.tdServer.exec(operate, conn, sql, msg.payload, function(err, result){
-                                    conn.close();
-                                    if (err) {
-                                        node.error(err, sql);
-                                        if (done) { done();}
-                                        return ;
+                                node.tdServer.exec(
+                                    operate,
+                                    conn,
+                                    sql,
+                                    msg.payload,
+                                    function (err, result) {
+                                        conn.close();
+                                        if (err) {
+                                            node.error(err, sql);
+                                            if (done) {
+                                                done();
+                                            }
+                                            return;
+                                        }
+                                        // ok
+                                        msg.payload = result;
+                                        msg.isQuery = false;
+                                        // send
+                                        send(msg);
+                                        node.debug("send msg:" + JSON.stringify(msg, replacer));
+                                        if (done) {
+                                            done();
+                                        }
                                     }
-                                    // ok
-                                    msg.payload = result;
-                                    msg.isQuery = false;
-                                    // send
-                                    send(msg);
-                                    node.debug("send msg:" + JSON.stringify(msg, replacer));
-                                    if (done) { done();}
-                                })
+                                );
                             }
-
                         } else {
                             conn.close();
-                            if (typeof msg.topic !== 'string') {
-                                node.error("msg.topic is tdengine.errors.notstring"); 
+                            if (typeof msg.topic !== "string") {
+                                node.error("msg.topic is tdengine.errors.notstring");
                             }
-                            if (done) { done();}
+                            if (done) {
+                                done();
+                            }
                         }
-                    })
-                } catch(error) {
+                    });
+                } catch (error) {
                     node.log("tdengine input catch error");
                     node.error(error);
-                    if (done) { done();}
+                    if (done) {
+                        done();
+                    }
                 } finally {
                     // input msg deal finished
-                    if (done) { 
-                        done(); 
+                    if (done) {
+                        done();
                     }
                 }
             });
 
             // on close
-            node.on('close', function() {
+            node.on("close", function () {
                 node.log("on close");
                 node.status({});
             });
-        }
-        else {
+        } else {
             node.error("tdengine.errors.notconfigured");
         }
     }
@@ -504,9 +529,9 @@ module.exports = function(RED) {
 
     // json string
     function replacer(key, value) {
-        if (typeof value === 'bigint') {
+        if (typeof value === "bigint") {
             return value.toString(); // Convert BigInt to string
         }
         return value;
     }
-}
+};

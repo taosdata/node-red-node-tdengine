@@ -1,7 +1,7 @@
 {
     "tdengine": {
         "label": {
-            "uri":"URI",
+            "uri": "URI",
             "user": "User",
             "password": "Password",
             "topic": "Topics",

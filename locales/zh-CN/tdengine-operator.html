@@ -1,26 +1,38 @@
 <script type="text/html" data-help-name="TDengineServer">
-     <p><b>数据库连接设置</b></p>
-     <ul>
+    <p><b>数据库连接设置</b></p>
+    <ul>
         <li>连接 TDengine 数据库使用 WEBSOCKET 协议。</li>
-            <p>本地部署连接串格式：<code>ws://user:password@host:port</code>。</p>
-            <ul>
-              <li>host：TDengine 服务器名或 IP。</li>
-              <li>port：端口号，默认 <code>6041</code>。</li> 
-              <li>user：用户名，默认 <code>root</code>。</li> 
-              <li>password：密码，默认 <code>taosdata</code>。</li> 
-            </ul>  
-            <p>云服务连接串格式：<code>wss://gw.cloud.taosdata.com?token=0df909...</code><p>
-            <ul>
-              <li>host：gw.cloud.taosdata.com</li>
-              <li>token：请登录 <a href="https://cloud.taosdata.com/">云服务网站</a> 获取。</li> 
-            </ul>
+        <p>本地部署连接串格式：<code>ws://user:password@host:port</code>。</p>
+        <ul>
+            <li>host：TDengine 服务器名或 IP。</li>
+            <li>port：端口号，默认 <code>6041</code>。</li>
+            <li>user：用户名，默认 <code>root</code>。</li>
+            <li>password：密码，默认 <code>taosdata</code>。</li>
+        </ul>
+        <p>
+            云服务连接串格式：<code
+                >wss://gw.cloud.taosdata.com?token=0df909...</code
+            >
+        </p>
+        <p></p>
+        <ul>
+            <li>host：gw.cloud.taosdata.com</li>
+            <li>
+                token：请登录
+                <a href="https://cloud.taosdata.com/">云服务网站</a> 获取。
+            </li>
+        </ul>
         <li>连接密码不明文暴露可选择“主机/端口”类型。</li>
-        <li>连接各属性详细参考： 
-            <a href="https://docs.taosdata.com/reference/connector/node/#url-%E8%A7%84%E8%8C%83" target="_blank">
+        <li>
+            连接各属性详细参考：
+            <a
+                href="https://docs.taosdata.com/reference/connector/node/#url-%E8%A7%84%E8%8C%83"
+                target="_blank"
+            >
                 URL 规范
             </a>
         </li>
-     </ul>
+    </ul>
 </script>
 
 <script type="text/html" data-help-name="tdengine-operator">
@@ -30,7 +42,9 @@
     <h3>功能特性</h3>
     <ul>
         <li>支持 TDengine 本地部署或云服务数据源。</li>
-        <li>支持 TDengine 所有 SQL 操作（SELECT/INSERT/CREATE/ALTER/SHOW 等）。</li>
+        <li>
+            支持 TDengine 所有 SQL 操作（SELECT/INSERT/CREATE/ALTER/SHOW 等）。
+        </li>
         <li>统一接口处理读写操作（<code>msg.topic</code> 传递 SQL 语句）。</li>
     </ul>
 
@@ -43,11 +57,7 @@
 
     <h3>输入格式</h3>
     <p>topic 传递 SQL 语句：</p>
-<code class="javascript">
-msg = {
-  topic: "SQL 语句"
-}
-</code>
+    <code class="javascript"> msg = { topic: "SQL 语句" } </code>
     <p>SQL 特殊字符与转义符需遵循 JSON 字符串规范。</p>
 
     <h3>输出格式</h3>
@@ -55,7 +65,7 @@ msg = {
     <h4>写入类</h4>
     <code>payload</code> 存放写入结果，topic 透传写入 SQL，输出格式：
 
-<pre><code class="javascript">msg = {
+    <pre><code class="javascript">msg = {
  topic: "insert into ...",
  isQuery: false, // 查询类为 true, 否则 false
  payload: {
@@ -67,8 +77,8 @@ msg = {
 </code></pre>
 
     <h4>查询类</h4>
-    <p> <code>payload</code> 存放查询结果，topic 透传查询 SQL，输出格式：</p>
-<pre><code class="javascript">{
+    <p><code>payload</code> 存放查询结果，topic 透传查询 SQL，输出格式：</p>
+    <pre><code class="javascript">{
 topic: "select * from ...",
 isQuery: true, // 查询类为 true, 否则 false
 payload: [
@@ -77,9 +87,12 @@ payload: [
     ...
 ]}
 </code></pre>
-<p>查询结果为行数据对象，其属性为列名，属性与列数据类型映射关系参考：</p>
+    <p>查询结果为行数据对象，其属性为列名，属性与列数据类型映射关系参考：</p>
     <p>
-        <a href="https://docs.taosdata.com/reference/connector/node/#%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E6%98%A0%E5%B0%84" target="_blank">
+        <a
+            href="https://docs.taosdata.com/reference/connector/node/#%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E6%98%A0%E5%B0%84"
+            target="_blank"
+        >
             TDengine NodeJS 连接器类型映射表
         </a>
     </p>
@@ -94,7 +107,7 @@ payload: [
 
     <h3>日志配置</h3>
     日志级别，遵循 node-red 日志级别开启不同 Level 日志。
-<pre><code class="json">// settings.js
+    <pre><code class="json">// settings.js
 logging: {
 level: "info"  
 }</code></pre>
@@ -107,13 +120,13 @@ level: "info"
     <h3>使用示例</h3>
     <div class="node-help-examples">
         <p><b>写入数据：</b></p>
-输入 <code>msg:</code> 
-<pre><code class="javascript">{
+        输入 <code>msg:</code>
+        <pre><code class="javascript">{
   topic:"insert into test.d0 value (NOW, 10, 219, 0.32)"
 }</code></pre>
 
-输出 <code>msg:</code>
-<pre><code class="javascript">{
+        输出 <code>msg:</code>
+        <pre><code class="javascript">{
   topic:"insert into test.d0 value (NOW, 10, 219, 0.32)",
   isQuery: false,
   payload: {
@@ -125,13 +138,13 @@ level: "info"
 </code></pre>
 
         <p><b>查询数据：</b></p>
-输入 <code>msg:</code> 
-<pre><code class="javascript">{
+        输入 <code>msg:</code>
+        <pre><code class="javascript">{
   topic:"select * from test.d0"
 }</code></pre>
 
-输出 <code>msg:</code>
-<pre><code class="javascript">{
+        输出 <code>msg:</code>
+        <pre><code class="javascript">{
 topic:"select * from test.d0",
 isQuery: true,
 payload: [
@@ -139,10 +152,12 @@ payload: [
   { ts: 1749609200001, current: 31, voltage: 210, phase: 4 },
     ...
 ]}</code></pre>
-</div>
+    </div>
 
-<h3>关于 TDengine</h3>
-<a href="https://www.taosdata.com">TDengine</a> 是一款高性能、集群开源、云原生的时序数据库（Time Series Database，TSDB），专为物联网IoT平台、工业互联网、电力、IT 运维等场景设计并优化，具有极强的弹性伸缩能力。同时它还带有内建的缓存、流式计算、数据订阅等系统功能，能大幅减少系统设计的复杂度，降低研发和运营成本，是一个高性能、分布式的物联网IoT、工业大数据平台。
-<p>&nbsp;</p>
- 
+    <h3>关于 TDengine</h3>
+    <a href="https://www.taosdata.com">TDengine</a>
+    是一款高性能、集群开源、云原生的时序数据库（Time Series
+    Database，TSDB），专为物联网IoT平台、工业互联网、电力、IT
+    运维等场景设计并优化，具有极强的弹性伸缩能力。同时它还带有内建的缓存、流式计算、数据订阅等系统功能，能大幅减少系统设计的复杂度，降低研发和运营成本，是一个高性能、分布式的物联网IoT、工业大数据平台。
+    <p>&nbsp;</p>
 </script>
